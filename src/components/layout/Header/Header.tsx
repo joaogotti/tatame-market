@@ -1,4 +1,10 @@
-import Link from "next/link";
+import { AuthHeaderActions } from "@/components/auth/AuthHeaderActions/AuthHeaderActions";
+
+/**
+ * Estrutura visual principal do Header.
+ * As ações que dependem da sessão ficam isoladas em um Client Component para
+ * preservar o restante deste componente como apresentação estática.
+ */
 
 export function Header() {
   return (
@@ -15,12 +21,7 @@ export function Header() {
         />
       </div>
 
-      <Link
-        href="/anunciar"
-        className="ml-auto rounded-lg bg-[#F5F5F5] px-5 py-2 font-semibold text-[#111412] transition hover:bg-[#DADADA]"
-      >
-        + Anunciar
-      </Link>
+      <AuthHeaderActions />
     </header>
   );
 }
