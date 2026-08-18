@@ -21,7 +21,11 @@ export const productCategories = [
 
 export type ProductCategory = (typeof productCategories)[number];
 
-type MockProduct = {
+/**
+ * Contrato temporário de produto compartilhado pela listagem e pelos detalhes.
+ * Ele pode ser reaproveitado quando os mocks forem substituídos pelo backend.
+ */
+export type Product = {
   id: number;
   title: string;
   price: number;
@@ -29,11 +33,12 @@ type MockProduct = {
   image: string;
   category: ProductCategory;
   size: string;
-  condition: string;
+  condition: "Novo" | "Usado";
+  description: string;
 };
 
 // A tipagem mantém as categorias dos anúncios alinhadas aos filtros da Home.
-export const mockProducts: MockProduct[] = [
+export const mockProducts: Product[] = [
   {
     id: 1,
     title: "Kimono Atama Mundial A2",
@@ -43,6 +48,8 @@ export const mockProducts: MockProduct[] = [
     category: "Kimonos",
     size: "A2",
     condition: "Usado",
+    description:
+      "Kimono Atama Mundial em ótimo estado de conservação, ideal para treinos e competições. Possui reforços nas principais áreas de contato.",
   },
   {
     id: 2,
@@ -53,6 +60,8 @@ export const mockProducts: MockProduct[] = [
     category: "Faixas",
     size: "A2",
     condition: "Usado",
+    description:
+      "Faixa preta para Jiu-Jitsu com boa estrutura e costuras resistentes. Apresenta sinais leves de uso, sem comprometer sua utilização.",
   },
   {
     id: 3,
@@ -63,6 +72,8 @@ export const mockProducts: MockProduct[] = [
     category: "Rashguards",
     size: "M",
     condition: "Novo",
+    description:
+      "Rashguard de manga longa com tecido elástico e respirável, indicada para treinos com ou sem kimono. Produto novo e sem uso.",
   },
   {
     id: 4,
@@ -73,5 +84,7 @@ export const mockProducts: MockProduct[] = [
     category: "Kimonos",
     size: "A1",
     condition: "Usado",
+    description:
+      "Kimono Kingz Comp V6 leve e resistente, adequado para atletas que buscam mobilidade. Conservado e pronto para novos treinos.",
   },
 ];
