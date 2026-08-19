@@ -13,6 +13,15 @@ export type CatalogProduct = Pick<
   image: string | null;
 };
 
+export type UserProduct = Pick<
+  Product,
+  "title" | "price" | "location" | "condition"
+> & {
+  id: string;
+  image: string | null;
+  status: string;
+};
+
 function normalizeCategoryValue(value: string) {
   return value
     .normalize("NFD")

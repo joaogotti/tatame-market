@@ -20,7 +20,7 @@ export const navigation = [
     href: "/mensagens",
   },
   {
-    label: "Meu perfil",
-    href: "/perfil",
+    label: "Meus anúncios",
+    href: "/meus-anuncios",
   },
 ];

@@ -25,12 +25,16 @@ function formatCity(city: City) {
  * Somente este componente é client-side porque controla carregamento, busca e
  * seleção; o formulário e a página continuam como Server Components.
  */
-export function LocationAutocomplete() {
+export function LocationAutocomplete({ initialCity }: { initialCity?: City }) {
   const listId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const [cities, setCities] = useState<City[]>([]);
-  const [query, setQuery] = useState("");
-  const [selectedCity, setSelectedCity] = useState<City | null>(null);
+  const [query, setQuery] = useState(() =>
+    initialCity ? formatCity(initialCity) : "",
+  );
+  const [selectedCity, setSelectedCity] = useState<City | null>(
+    initialCity ?? null,
+  );
   const [status, setStatus] = useState<LoadingStatus>("loading");
   const [isOpen, setIsOpen] = useState(false);
 

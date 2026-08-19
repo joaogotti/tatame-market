@@ -35,8 +35,8 @@ const navigation = [
     icon: MessageCircle,
   },
   {
-    label: "Meu perfil",
-    href: "/perfil",
+    label: "Meus anúncios",
+    href: "/meus-anuncios",
     icon: User,
   },
 ];
