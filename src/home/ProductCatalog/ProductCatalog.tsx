@@ -2,26 +2,30 @@
 
 import { useState } from "react";
 
-import { mockProducts } from "@/constants/mockProducts";
 import {
   Categories,
   type SelectedCategory,
 } from "@/home/Categories/Categories";
 import { ProductCard } from "@/home/ProductCard/ProductCard";
+import type { CatalogProduct } from "@/lib/products";
+
+type ProductCatalogProps = {
+  products: CatalogProduct[];
+};
 
 /**
  * Área interativa da Home responsável por coordenar a categoria selecionada
  * e a lista de anúncios. Este limite mantém a página e o Hero no servidor.
  */
-export function ProductCatalog() {
+export function ProductCatalog({ products }: ProductCatalogProps) {
   const [selectedCategory, setSelectedCategory] =
     useState<SelectedCategory>("Todos");
 
-  // "Todos" ignora o filtro; as demais opções correspondem às categorias dos mocks.
+  // "Todos" ignora o filtro; as demais opções usam a categoria normalizada na Home.
   const filteredProducts =
     selectedCategory === "Todos"
-      ? mockProducts
-      : mockProducts.filter(
+      ? products
+      : products.filter(
           (product) => product.category === selectedCategory,
         );
 
@@ -40,8 +44,8 @@ export function ProductCatalog() {
         <div className="flex flex-wrap gap-5">
           {filteredProducts.map((product) => (
             <ProductCard
-              key={product.id}
-              id={product.id}
+              key={product.key}
+              href={product.href}
               title={product.title}
               price={product.price}
               location={product.location}

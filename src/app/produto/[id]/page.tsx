@@ -1,11 +1,152 @@
-import Image from "next/image";
 import { notFound } from "next/navigation";
 
+import { ProductImageGallery } from "@/components/products/ProductImageGallery/ProductImageGallery";
 import { mockProducts } from "@/constants/mockProducts";
+import {
+  formatProductPrice,
+  getMockProductIdFromRoute,
+} from "@/lib/products";
+import {
+  toProductGalleryImages,
+  type ProductGalleryImage,
+  type ProductImageRecord,
+} from "@/lib/productImages";
+import { createClient } from "@/lib/supabase/server";
+
+type ProductDetails = {
+  id: string;
+  title: string;
+  price: number;
+  location: string;
+  images: ProductGalleryImage[];
+  category: string;
+  size: string;
+  condition: string;
+  description: string;
+};
+
+type DatabaseProduct = {
+  id: string | number;
+  title: string;
+  category: string;
+  price: string | number;
+  condition: string;
+  size: string;
+  location_city: string;
+  location_state: string;
+  description: string;
+};
+
+function normalizeDatabaseProduct(
+  product: DatabaseProduct,
+  images: ProductGalleryImage[],
+): ProductDetails {
+  const price = Number(product.price);
+
+  if (!Number.isFinite(price)) {
+    throw new Error("O produto possui um preço inválido no banco de dados.");
+  }
+
+  return {
+    id: String(product.id),
+    title: product.title,
+    price,
+    location: `${product.location_city}, ${product.location_state}`,
+    images,
+    category: product.category,
+    size: product.size,
+    condition: product.condition,
+    description: product.description,
+  };
+}
+
+function normalizeMockProduct(
+  product: (typeof mockProducts)[number],
+): ProductDetails {
+  return {
+    id: String(product.id),
+    title: product.title,
+    price: product.price,
+    location: product.location,
+    images: [
+      {
+        url: product.image,
+        sortOrder: 0,
+        isPrimary: true,
+      },
+    ],
+    category: product.category,
+    size: product.size,
+    condition: product.condition,
+    description: product.description,
+  };
+}
+
+async function getProduct(id: string): Promise<ProductDetails | null> {
+  const mockId = getMockProductIdFromRoute(id);
+
+  // O prefixo explicita a origem e evita que um ID mock abra um produto real
+  // com o mesmo identificador no Supabase.
+  if (mockId) {
+    const mockProduct = mockProducts.find(
+      (item) => String(item.id) === mockId,
+    );
+
+    return mockProduct ? normalizeMockProduct(mockProduct) : null;
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select(
+      "id,title,category,price,condition,size,location_city,location_state,description",
+    )
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error && error.code !== "22P02") {
+    console.error("Falha ao consultar produto no Supabase.", {
+      id,
+      code: error.code,
+      message: error.message,
+    });
+    throw new Error("Não foi possível carregar o produto.");
+  }
+
+  if (data) {
+    const { data: imageData, error: imageError } = await supabase
+      .from("product_images")
+      .select("storage_path,sort_order,is_primary")
+      .eq("product_id", data.id)
+      .order("sort_order", { ascending: true });
+
+    if (imageError) {
+      console.error("Falha ao consultar imagens do produto.", {
+        id,
+        code: imageError.code,
+        message: imageError.message,
+      });
+      throw new Error("Não foi possível carregar as imagens do produto.");
+    }
+
+    const images = toProductGalleryImages(
+      supabase,
+      imageData as ProductImageRecord[],
+    );
+
+    return normalizeDatabaseProduct(data as DatabaseProduct, images);
+  }
+
+  // Enquanto a Home usar dados locais, IDs ausentes no banco continuam
+  // resolvendo para os anúncios existentes em mockProducts.
+  const mockProduct = mockProducts.find((item) => String(item.id) === id);
+
+  return mockProduct ? normalizeMockProduct(mockProduct) : null;
+}
 
 /**
- * Gera antecipadamente as páginas dos anúncios disponíveis nos mocks.
- * Quando a fonte migrar para o backend, esta função poderá usar os IDs reais.
+ * Gera antecipadamente as páginas dos anúncios disponíveis nos mocks enquanto
+ * os demais IDs continuam sendo resolvidos dinamicamente pelo Supabase.
  */
 export function generateStaticParams() {
   return mockProducts.map((product) => ({
@@ -21,9 +162,9 @@ export default async function ProductPage({
   params,
 }: PageProps<"/produto/[id]">) {
   const { id } = await params;
-  const product = mockProducts.find((item) => String(item.id) === id);
+  const product = await getProduct(id);
 
-  // IDs fora da fonte de dados seguem o fluxo 404 nativo do App Router.
+  // Apenas a ausência nas duas fontes segue o fluxo 404 nativo do App Router.
   if (!product) {
     notFound();
   }
@@ -31,16 +172,7 @@ export default async function ProductPage({
   return (
     <article className="mx-auto w-full max-w-6xl px-6 py-10">
       <div className="grid overflow-hidden rounded-2xl border border-white/10 bg-zinc-900 lg:grid-cols-2">
-        <div className="relative min-h-80 bg-zinc-950 lg:min-h-[32rem]">
-          <Image
-            src={product.image}
-            alt={product.title}
-            fill
-            priority
-            sizes="(max-width: 1024px) 100vw, 50vw"
-            className="object-cover"
-          />
-        </div>
+        <ProductImageGallery images={product.images} title={product.title} />
 
         <div className="flex flex-col justify-center p-6 sm:p-10">
           <span className="mb-3 text-sm font-medium text-[#58C447]">
@@ -52,7 +184,7 @@ export default async function ProductPage({
           </h1>
 
           <strong className="mt-6 text-3xl text-[#58C447]">
-            R$ {product.price}
+            {formatProductPrice(product.price)}
           </strong>
 
           <div className="mt-8 flex flex-wrap items-center gap-2 text-zinc-300">
