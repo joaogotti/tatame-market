@@ -7,7 +7,7 @@ import {
   sortProductImages,
   type ProductImageRecord,
 } from "@/lib/productImages";
-import type { UserProduct } from "@/lib/products";
+import { isProductStatus, type UserProduct } from "@/lib/products";
 import { createClient } from "@/lib/supabase/server";
 
 type DatabaseUserProduct = {
@@ -95,8 +95,13 @@ export default async function MyProductsPage() {
   const products: UserProduct[] = databaseProducts.map((product) => {
     const price = Number(product.price);
 
-    if (!Number.isFinite(price)) {
-      throw new Error("Um anúncio possui preço inválido no banco de dados.");
+    if (!Number.isFinite(price) || !isProductStatus(product.status)) {
+      console.error("Anúncio possui dados inválidos no banco de dados.", {
+        productId: product.id,
+        price: product.price,
+        status: product.status,
+      });
+      throw new Error("Não foi possível preparar um dos seus anúncios.");
     }
 
     const primaryImage = sortProductImages(

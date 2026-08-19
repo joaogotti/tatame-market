@@ -13,13 +13,36 @@ export type CatalogProduct = Pick<
   image: string | null;
 };
 
+export const productStatuses = ["active", "paused", "sold"] as const;
+
+export type ProductStatus = (typeof productStatuses)[number];
+
+export function isProductStatus(value: string): value is ProductStatus {
+  return productStatuses.some((status) => status === value);
+}
+
+export function canTransitionProductStatus(
+  currentStatus: ProductStatus,
+  nextStatus: ProductStatus,
+) {
+  if (currentStatus === "active") {
+    return nextStatus === "paused" || nextStatus === "sold";
+  }
+
+  if (currentStatus === "paused") {
+    return nextStatus === "active" || nextStatus === "sold";
+  }
+
+  return nextStatus === "active";
+}
+
 export type UserProduct = Pick<
   Product,
   "title" | "price" | "location" | "condition"
 > & {
   id: string;
   image: string | null;
-  status: string;
+  status: ProductStatus;
 };
 
 function normalizeCategoryValue(value: string) {

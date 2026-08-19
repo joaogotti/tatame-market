@@ -3,14 +3,35 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { DeleteProductButton } from "@/components/products/DeleteProductButton/DeleteProductButton";
-import { formatProductPrice, type UserProduct } from "@/lib/products";
+import { ProductStatusActions } from "@/components/products/ProductStatusActions/ProductStatusActions";
+import {
+  formatProductPrice,
+  type ProductStatus,
+  type UserProduct,
+} from "@/lib/products";
 
-function getStatusLabel(status: string) {
-  return status === "active" ? "Ativo" : status;
-}
+const statusPresentation: Record<
+  ProductStatus,
+  { label: string; className: string }
+> = {
+  active: {
+    label: "Ativo",
+    className: "border-[#58C447]/30 bg-[#58C447]/10 text-[#58C447]",
+  },
+  paused: {
+    label: "Pausado",
+    className: "border-amber-400/30 bg-amber-400/10 text-amber-300",
+  },
+  sold: {
+    label: "Vendido",
+    className: "border-sky-400/30 bg-sky-400/10 text-sky-300",
+  },
+};
 
 /** Card de gestão com acesso às ações disponíveis para o proprietário. */
 export function MyProductCard({ product }: { product: UserProduct }) {
+  const status = statusPresentation[product.status];
+
   return (
     <article className="grid overflow-hidden rounded-2xl border border-white/10 bg-zinc-900 sm:grid-cols-[12rem_1fr]">
       <div className="relative min-h-48 bg-zinc-950">
@@ -39,8 +60,10 @@ export function MyProductCard({ product }: { product: UserProduct }) {
             </h2>
           </div>
 
-          <span className="rounded-full border border-[#58C447]/30 bg-[#58C447]/10 px-3 py-1 text-xs font-semibold text-[#58C447]">
-            {getStatusLabel(product.status)}
+          <span
+            className={`rounded-full border px-3 py-1 text-xs font-semibold ${status.className}`}
+          >
+            {status.label}
           </span>
         </div>
 
@@ -52,7 +75,13 @@ export function MyProductCard({ product }: { product: UserProduct }) {
           <span className="text-sm text-zinc-400">{product.condition}</span>
         </div>
 
-        <div className="mt-auto flex flex-wrap items-center justify-end gap-3 border-t border-white/10 pt-5">
+        <ProductStatusActions
+          key={product.status}
+          productId={product.id}
+          status={product.status}
+        />
+
+        <div className="mt-4 flex flex-wrap items-center justify-end gap-3 border-t border-white/10 pt-5">
           <Link
             href={`/meus-anuncios/${encodeURIComponent(product.id)}/editar`}
             className="rounded-lg border border-[#58C447]/30 px-4 py-2 text-sm font-medium text-[#58C447] transition hover:border-[#58C447]/60 hover:text-[#6AD159]"
