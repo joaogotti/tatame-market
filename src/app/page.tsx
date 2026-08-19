@@ -12,6 +12,7 @@ import {
   type ProductImageRecord,
 } from "@/lib/productImages";
 import { createClient } from "@/lib/supabase/server";
+import { getFavoriteProductIds } from "@/lib/favorites";
 
 type DatabaseCatalogProduct = {
   id: string | number;
@@ -32,6 +33,7 @@ type DatabaseProductImage = ProductImageRecord & {
 function normalizeDatabaseProduct(
   product: DatabaseCatalogProduct,
   image: string | null,
+  isFavorite: boolean,
 ): CatalogProduct {
   const price = Number(product.price);
   const category = normalizeProductCategory(product.category);
@@ -42,6 +44,7 @@ function normalizeDatabaseProduct(
 
   return {
     key: `supabase:${product.id}`,
+    source: "supabase",
     href: `/produto/${encodeURIComponent(String(product.id))}`,
     title: product.title,
     price,
@@ -50,6 +53,8 @@ function normalizeDatabaseProduct(
     category,
     size: product.size,
     condition: product.condition,
+    favoriteProductId: String(product.id),
+    isFavorite,
   };
 }
 
@@ -58,6 +63,7 @@ function normalizeMockProduct(
 ): CatalogProduct {
   return {
     key: `mock:${product.id}`,
+    source: "mock",
     href: getMockProductHref(product.id),
     title: product.title,
     price: product.price,
@@ -66,6 +72,8 @@ function normalizeMockProduct(
     category: product.category,
     size: product.size,
     condition: product.condition,
+    favoriteProductId: null,
+    isFavorite: false,
   };
 }
 
@@ -90,6 +98,27 @@ async function getDatabaseProducts(): Promise<CatalogProduct[]> {
   const products = data as DatabaseCatalogProduct[];
 
   if (products.length === 0) return [];
+
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError && authError.name !== "AuthSessionMissingError") {
+    console.error("Falha ao validar usuário ao carregar favoritos da Home.", {
+      name: authError.name,
+      message: authError.message,
+    });
+    throw new Error("Não foi possível validar sua sessão.");
+  }
+
+  const favoriteProductIds = user
+    ? await getFavoriteProductIds(
+        supabase,
+        user.id,
+        products.map((product) => product.id),
+      )
+    : new Set<string>();
 
   // Uma única consulta carrega as imagens de todos os produtos, evitando N+1.
   const { data: imageData, error: imageError } = await supabase
@@ -126,7 +155,11 @@ async function getDatabaseProducts(): Promise<CatalogProduct[]> {
       ? getProductImagePublicUrl(supabase, primaryImage.storage_path)
       : null;
 
-    return normalizeDatabaseProduct(product, imageUrl);
+    return normalizeDatabaseProduct(
+      product,
+      imageUrl,
+      favoriteProductIds.has(String(product.id)),
+    );
   });
 }
 

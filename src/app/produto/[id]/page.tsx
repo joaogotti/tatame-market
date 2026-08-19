@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { FavoriteButton } from "@/components/products/FavoriteButton/FavoriteButton";
 import { ProductImageGallery } from "@/components/products/ProductImageGallery/ProductImageGallery";
 import { mockProducts } from "@/constants/mockProducts";
 import {
@@ -12,8 +13,9 @@ import {
   type ProductImageRecord,
 } from "@/lib/productImages";
 import { createClient } from "@/lib/supabase/server";
+import { getFavoriteProductIds } from "@/lib/favorites";
 
-type ProductDetails = {
+type ProductDetailsBase = {
   id: string;
   title: string;
   price: number;
@@ -24,6 +26,20 @@ type ProductDetails = {
   condition: string;
   description: string;
 };
+
+type ProductDetails = ProductDetailsBase &
+  (
+    | {
+        source: "supabase";
+        favoriteProductId: string;
+        isFavorite: boolean;
+      }
+    | {
+        source: "mock";
+        favoriteProductId: null;
+        isFavorite: false;
+      }
+  );
 
 type DatabaseProduct = {
   id: string | number;
@@ -40,6 +56,7 @@ type DatabaseProduct = {
 function normalizeDatabaseProduct(
   product: DatabaseProduct,
   images: ProductGalleryImage[],
+  isFavorite: boolean,
 ): ProductDetails {
   const price = Number(product.price);
 
@@ -49,6 +66,7 @@ function normalizeDatabaseProduct(
 
   return {
     id: String(product.id),
+    source: "supabase",
     title: product.title,
     price,
     location: `${product.location_city}, ${product.location_state}`,
@@ -57,6 +75,8 @@ function normalizeDatabaseProduct(
     size: product.size,
     condition: product.condition,
     description: product.description,
+    favoriteProductId: String(product.id),
+    isFavorite,
   };
 }
 
@@ -65,6 +85,7 @@ function normalizeMockProduct(
 ): ProductDetails {
   return {
     id: String(product.id),
+    source: "mock",
     title: product.title,
     price: product.price,
     location: product.location,
@@ -79,6 +100,8 @@ function normalizeMockProduct(
     size: product.size,
     condition: product.condition,
     description: product.description,
+    favoriteProductId: null,
+    isFavorite: false,
   };
 }
 
@@ -134,7 +157,29 @@ async function getProduct(id: string): Promise<ProductDetails | null> {
       imageData as ProductImageRecord[],
     );
 
-    return normalizeDatabaseProduct(data as DatabaseProduct, images);
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError && authError.name !== "AuthSessionMissingError") {
+      console.error("Falha ao validar usuário nos detalhes do produto.", {
+        id,
+        name: authError.name,
+        message: authError.message,
+      });
+      throw new Error("Não foi possível validar sua sessão.");
+    }
+
+    const favoriteProductIds = user
+      ? await getFavoriteProductIds(supabase, user.id, [data.id])
+      : new Set<string>();
+
+    return normalizeDatabaseProduct(
+      data as DatabaseProduct,
+      images,
+      favoriteProductIds.has(String(data.id)),
+    );
   }
 
   // Enquanto a Home usar dados locais, IDs ausentes no banco continuam
@@ -183,9 +228,18 @@ export default async function ProductPage({
             {product.title}
           </h1>
 
-          <strong className="mt-6 text-3xl text-[#58C447]">
-            {formatProductPrice(product.price)}
-          </strong>
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+            <strong className="text-3xl text-[#58C447]">
+              {formatProductPrice(product.price)}
+            </strong>
+            {product.source === "supabase" && (
+              <FavoriteButton
+                key={`${product.favoriteProductId}:${product.isFavorite}`}
+                productId={product.favoriteProductId}
+                initialIsFavorite={product.isFavorite}
+              />
+            )}
+          </div>
 
           <div className="mt-8 flex flex-wrap items-center gap-2 text-zinc-300">
             <span>{product.condition}</span>

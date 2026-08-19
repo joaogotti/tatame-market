@@ -43,16 +43,7 @@ export function ProductCatalog({ products }: ProductCatalogProps) {
 
         <div className="flex flex-wrap gap-5">
           {filteredProducts.map((product) => (
-            <ProductCard
-              key={product.key}
-              href={product.href}
-              title={product.title}
-              price={product.price}
-              location={product.location}
-              image={product.image}
-              size={product.size}
-              condition={product.condition}
-            />
+            <ProductCard key={product.key} product={product} />
           ))}
         </div>
       </section>

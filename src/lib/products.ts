@@ -4,7 +4,7 @@ import {
   type ProductCategory,
 } from "@/constants/mockProducts";
 
-export type CatalogProduct = Pick<
+type CatalogProductBase = Pick<
   Product,
   "title" | "price" | "location" | "category" | "size" | "condition"
 > & {
@@ -12,6 +12,20 @@ export type CatalogProduct = Pick<
   href: string;
   image: string | null;
 };
+
+export type CatalogProduct = CatalogProductBase &
+  (
+    | {
+        source: "supabase";
+        favoriteProductId: string;
+        isFavorite: boolean;
+      }
+    | {
+        source: "mock";
+        favoriteProductId: null;
+        isFavorite: false;
+      }
+  );
 
 export const productStatuses = ["active", "paused", "sold"] as const;
 
