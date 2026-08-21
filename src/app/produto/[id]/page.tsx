@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { FavoriteButton } from "@/components/products/FavoriteButton/FavoriteButton";
 import { ProductImageGallery } from "@/components/products/ProductImageGallery/ProductImageGallery";
+import { StartConversationButton } from "@/components/products/StartConversationButton/StartConversationButton";
 import { mockProducts } from "@/constants/mockProducts";
 import {
   formatProductPrice,
@@ -33,6 +34,9 @@ type ProductDetails = ProductDetailsBase &
         source: "supabase";
         favoriteProductId: string;
         isFavorite: boolean;
+        sellerId: string;
+        status: string;
+        currentUserId: string | null;
       }
     | {
         source: "mock";
@@ -51,12 +55,15 @@ type DatabaseProduct = {
   location_city: string;
   location_state: string;
   description: string;
+  user_id: string;
+  status: string;
 };
 
 function normalizeDatabaseProduct(
   product: DatabaseProduct,
   images: ProductGalleryImage[],
   isFavorite: boolean,
+  currentUserId: string | null,
 ): ProductDetails {
   const price = Number(product.price);
 
@@ -77,6 +84,9 @@ function normalizeDatabaseProduct(
     description: product.description,
     favoriteProductId: String(product.id),
     isFavorite,
+    sellerId: product.user_id,
+    status: product.status,
+    currentUserId,
   };
 }
 
@@ -122,7 +132,7 @@ async function getProduct(id: string): Promise<ProductDetails | null> {
   const { data, error } = await supabase
     .from("products")
     .select(
-      "id,title,category,price,condition,size,location_city,location_state,description",
+      "id,title,category,price,condition,size,location_city,location_state,description,user_id,status",
     )
     .eq("id", id)
     .maybeSingle();
@@ -179,6 +189,7 @@ async function getProduct(id: string): Promise<ProductDetails | null> {
       data as DatabaseProduct,
       images,
       favoriteProductIds.has(String(data.id)),
+      user?.id ?? null,
     );
   }
 
@@ -248,6 +259,12 @@ export default async function ProductPage({
           </div>
 
           <p className="mt-3 text-zinc-400">{product.location}</p>
+
+          {product.source === "supabase" &&
+            product.status === "active" &&
+            product.currentUserId !== product.sellerId && (
+              <StartConversationButton productId={product.id} />
+            )}
         </div>
       </div>
 

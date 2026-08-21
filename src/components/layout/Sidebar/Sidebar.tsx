@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import {
   House,
   Tag,
@@ -7,6 +8,8 @@ import {
   MessageCircle,
   User,
 } from "lucide-react";
+
+import { MessageNotificationIndicator } from "@/components/messages/MessageNotificationIndicator/MessageNotificationIndicator";
 
 const navigation = [
   {
@@ -57,6 +60,12 @@ export function Sidebar() {
               <Icon size={20} />
 
               <span>{item.label}</span>
+
+              {item.href === "/mensagens" && (
+                <Suspense fallback={null}>
+                  <MessageNotificationIndicator />
+                </Suspense>
+              )}
             </Link>
           );
         })}
