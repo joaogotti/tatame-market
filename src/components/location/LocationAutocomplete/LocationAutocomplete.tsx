@@ -25,7 +25,15 @@ function formatCity(city: City) {
  * Somente este componente é client-side porque controla carregamento, busca e
  * seleção; o formulário e a página continuam como Server Components.
  */
-export function LocationAutocomplete({ initialCity }: { initialCity?: City }) {
+export function LocationAutocomplete({
+  initialCity,
+  required = true,
+  disabled = false,
+}: {
+  initialCity?: City;
+  required?: boolean;
+  disabled?: boolean;
+}) {
   const listId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const [cities, setCities] = useState<City[]>([]);
@@ -59,9 +67,11 @@ export function LocationAutocomplete({ initialCity }: { initialCity?: City }) {
 
   useEffect(() => {
     inputRef.current?.setCustomValidity(
-      selectedCity ? "" : "Selecione um município da lista de sugestões.",
+      selectedCity || (!required && query.trim().length === 0)
+        ? ""
+        : "Selecione um município da lista de sugestões.",
     );
-  }, [selectedCity]);
+  }, [query, required, selectedCity]);
 
   const normalizedQuery = normalizeSearchTerm(query);
   const suggestions = useMemo(() => {
@@ -125,8 +135,8 @@ export function LocationAutocomplete({ initialCity }: { initialCity?: City }) {
         id="location-search"
         type="text"
         value={query}
-        required
-        disabled={status !== "ready"}
+        required={required}
+        disabled={disabled || status !== "ready"}
         autoComplete="off"
         role="combobox"
         aria-autocomplete="list"
@@ -172,6 +182,7 @@ export function LocationAutocomplete({ initialCity }: { initialCity?: City }) {
             <li key={city.ibgeCode} role="option" aria-selected="false">
               <button
                 type="button"
+                disabled={disabled}
                 className="w-full rounded-lg px-4 py-3 text-left text-sm text-zinc-300 transition hover:bg-zinc-800 hover:text-white focus:bg-zinc-800 focus:text-white focus:outline-none"
                 onClick={() => handleSelection(city)}
               >
@@ -187,6 +198,7 @@ export function LocationAutocomplete({ initialCity }: { initialCity?: City }) {
           <span>Não foi possível consultar os municípios do IBGE.</span>
           <button
             type="button"
+            disabled={disabled}
             className="font-medium text-zinc-200 underline underline-offset-2 hover:text-white"
             onClick={handleRetry}
           >

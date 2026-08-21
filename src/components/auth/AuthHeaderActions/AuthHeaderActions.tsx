@@ -8,7 +8,16 @@ import { useEffect, useState } from "react";
 
 import { createClient } from "@/lib/supabase/client";
 
-function getDisplayName(user: User) {
+type HeaderProfile = {
+  userId: string;
+  name: string;
+};
+
+function getDisplayName(user: User, profile: HeaderProfile | null) {
+  if (profile?.userId === user.id && profile.name.trim()) {
+    return profile.name.trim();
+  }
+
   const metadataName = user.user_metadata?.name;
 
   if (typeof metadataName === "string" && metadataName.trim()) {
@@ -27,7 +36,11 @@ function getDisplayName(user: User) {
  * Este é o único listener global de sessão: a leitura inicial valida o usuário
  * atual e os eventos seguintes mantêm a interface sincronizada com o Supabase.
  */
-export function AuthHeaderActions() {
+export function AuthHeaderActions({
+  profile,
+}: {
+  profile: HeaderProfile | null;
+}) {
   const router = useRouter();
   const [supabase] = useState(createClient);
   const [user, setUser] = useState<User | null>(null);
@@ -121,12 +134,13 @@ export function AuthHeaderActions() {
     );
   }
 
-  const displayName = getDisplayName(user);
+  const displayName = getDisplayName(user, profile);
 
   return (
     <div className="relative ml-auto flex items-center gap-3">
-      <div
-        className="flex min-w-0 items-center gap-2 text-zinc-200"
+      <Link
+        href="/perfil"
+        className="flex min-w-0 items-center gap-2 rounded-lg px-2 py-1 text-zinc-200 transition hover:bg-zinc-800 hover:text-white"
         title={user.email}
       >
         <span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-[#58C447]/30 bg-[#58C447]/10 text-[#58C447]">
@@ -135,7 +149,7 @@ export function AuthHeaderActions() {
         <span className="max-w-36 truncate text-sm font-medium">
           {displayName}
         </span>
-      </div>
+      </Link>
 
       <button
         type="button"

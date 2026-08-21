@@ -1,4 +1,10 @@
 import { AuthHeaderActions } from "@/components/auth/AuthHeaderActions/AuthHeaderActions";
+import { createClient } from "@/lib/supabase/server";
+
+type HeaderProfile = {
+  userId: string;
+  name: string;
+};
 
 /**
  * Estrutura visual principal do Header.
@@ -6,7 +12,44 @@ import { AuthHeaderActions } from "@/components/auth/AuthHeaderActions/AuthHeade
  * preservar o restante deste componente como apresentação estática.
  */
 
-export function Header() {
+export async function Header() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  let profile: HeaderProfile | null = null;
+
+  if (authError && authError.name !== "AuthSessionMissingError") {
+    console.error("Falha ao validar usuário no Header.", {
+      name: authError.name,
+      message: authError.message,
+    });
+  }
+
+  if (user) {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("name")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (error) {
+      // O Header continua utilizável com o fallback do Auth mesmo se a leitura
+      // do perfil falhar temporariamente.
+      console.error("Falha ao carregar nome público no Header.", {
+        userId: user.id,
+        code: error.code,
+        message: error.message,
+      });
+    } else if (data && typeof data.name === "string" && data.name.trim()) {
+      profile = {
+        userId: user.id,
+        name: data.name.trim(),
+      };
+    }
+  }
+
   return (
     <header className="h-16 border-b border-zinc-800 bg-[#111412] px-6 flex items-center gap-8">
       <h1 className="text-xl font-bold text-[#F5F5F5] whitespace-nowrap">
@@ -21,7 +64,7 @@ export function Header() {
         />
       </div>
 
-      <AuthHeaderActions />
+      <AuthHeaderActions profile={profile} />
     </header>
   );
 }
