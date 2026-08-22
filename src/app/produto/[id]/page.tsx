@@ -3,6 +3,10 @@ import { notFound } from "next/navigation";
 import { FavoriteButton } from "@/components/products/FavoriteButton/FavoriteButton";
 import { ProductImageGallery } from "@/components/products/ProductImageGallery/ProductImageGallery";
 import { StartConversationButton } from "@/components/products/StartConversationButton/StartConversationButton";
+import {
+  SellerCard,
+  type PublicSeller,
+} from "@/components/profile/SellerCard/SellerCard";
 import { mockProducts } from "@/constants/mockProducts";
 import {
   formatProductPrice,
@@ -35,6 +39,7 @@ type ProductDetails = ProductDetailsBase &
         favoriteProductId: string;
         isFavorite: boolean;
         sellerId: string;
+        seller: PublicSeller | null;
         status: string;
         currentUserId: string | null;
       }
@@ -59,11 +64,19 @@ type DatabaseProduct = {
   status: string;
 };
 
+type DatabaseSellerProfile = {
+  name: string;
+  avatar_url: string | null;
+  location_city: string | null;
+  location_state: string | null;
+};
+
 function normalizeDatabaseProduct(
   product: DatabaseProduct,
   images: ProductGalleryImage[],
   isFavorite: boolean,
   currentUserId: string | null,
+  seller: PublicSeller | null,
 ): ProductDetails {
   const price = Number(product.price);
 
@@ -85,6 +98,7 @@ function normalizeDatabaseProduct(
     favoriteProductId: String(product.id),
     isFavorite,
     sellerId: product.user_id,
+    seller,
     status: product.status,
     currentUserId,
   };
@@ -147,30 +161,48 @@ async function getProduct(id: string): Promise<ProductDetails | null> {
   }
 
   if (data) {
-    const { data: imageData, error: imageError } = await supabase
-      .from("product_images")
-      .select("storage_path,sort_order,is_primary")
-      .eq("product_id", data.id)
-      .order("sort_order", { ascending: true });
+    const [imagesResult, sellerResult, authResult] = await Promise.all([
+      supabase
+        .from("product_images")
+        .select("storage_path,sort_order,is_primary")
+        .eq("product_id", data.id)
+        .order("sort_order", { ascending: true }),
+      supabase
+        .from("profiles")
+        .select("name,avatar_url,location_city,location_state")
+        .eq("id", data.user_id)
+        .maybeSingle(),
+      supabase.auth.getUser(),
+    ]);
 
-    if (imageError) {
+    if (imagesResult.error) {
       console.error("Falha ao consultar imagens do produto.", {
         id,
-        code: imageError.code,
-        message: imageError.message,
+        code: imagesResult.error.code,
+        message: imagesResult.error.message,
       });
       throw new Error("Não foi possível carregar as imagens do produto.");
     }
 
+    if (sellerResult.error) {
+      console.error("Falha ao consultar vendedor do produto.", {
+        id,
+        sellerId: data.user_id,
+        code: sellerResult.error.code,
+        message: sellerResult.error.message,
+      });
+      throw new Error("Não foi possível carregar o vendedor do produto.");
+    }
+
     const images = toProductGalleryImages(
       supabase,
-      imageData as ProductImageRecord[],
+      imagesResult.data as ProductImageRecord[],
     );
 
     const {
       data: { user },
       error: authError,
-    } = await supabase.auth.getUser();
+    } = authResult;
 
     if (authError && authError.name !== "AuthSessionMissingError") {
       console.error("Falha ao validar usuário nos detalhes do produto.", {
@@ -184,12 +216,31 @@ async function getProduct(id: string): Promise<ProductDetails | null> {
     const favoriteProductIds = user
       ? await getFavoriteProductIds(supabase, user.id, [data.id])
       : new Set<string>();
+    const sellerProfile = sellerResult.data as DatabaseSellerProfile | null;
+    const seller =
+      sellerProfile && sellerProfile.name.trim()
+        ? {
+            id: data.user_id,
+            name: sellerProfile.name.trim(),
+            avatarUrl: sellerProfile.avatar_url,
+            locationCity: sellerProfile.location_city,
+            locationState: sellerProfile.location_state,
+          }
+        : null;
+
+    if (!seller) {
+      console.error("Perfil público do vendedor não foi encontrado.", {
+        id,
+        sellerId: data.user_id,
+      });
+    }
 
     return normalizeDatabaseProduct(
       data as DatabaseProduct,
       images,
       favoriteProductIds.has(String(data.id)),
       user?.id ?? null,
+      seller,
     );
   }
 
@@ -267,6 +318,10 @@ export default async function ProductPage({
             )}
         </div>
       </div>
+
+      {product.source === "supabase" && product.seller && (
+        <SellerCard seller={product.seller} />
+      )}
 
       <section className="mt-8 rounded-2xl border border-white/10 bg-zinc-900 p-6 sm:p-8">
         <h2 className="text-2xl font-bold text-white">Descrição</h2>
