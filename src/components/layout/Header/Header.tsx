@@ -1,9 +1,11 @@
 import { AuthHeaderActions } from "@/components/auth/AuthHeaderActions/AuthHeaderActions";
+import { isAvatarPublicUrl } from "@/lib/profileAvatar";
 import { createClient } from "@/lib/supabase/server";
 
 type HeaderProfile = {
   userId: string;
   name: string;
+  avatarUrl: string | null;
 };
 
 /**
@@ -30,7 +32,7 @@ export async function Header() {
   if (user) {
     const { data, error } = await supabase
       .from("profiles")
-      .select("name")
+      .select("name,avatar_url")
       .eq("id", user.id)
       .maybeSingle();
 
@@ -43,9 +45,17 @@ export async function Header() {
         message: error.message,
       });
     } else if (data && typeof data.name === "string" && data.name.trim()) {
+      const avatarUrl =
+        typeof data.avatar_url === "string" ? data.avatar_url.trim() : "";
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
       profile = {
         userId: user.id,
         name: data.name.trim(),
+        avatarUrl:
+          avatarUrl && supabaseUrl && isAvatarPublicUrl(avatarUrl, supabaseUrl)
+            ? avatarUrl
+            : null,
       };
     }
   }

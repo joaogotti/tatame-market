@@ -1,11 +1,13 @@
 import { redirect } from "next/navigation";
 
+import { ProfileAvatar } from "@/components/profile/ProfileAvatar/ProfileAvatar";
 import { ProfileForm } from "@/components/profile/ProfileForm/ProfileForm";
 import { createClient } from "@/lib/supabase/server";
 import type { City } from "@/services/ibge/cities";
 
 type DatabaseProfile = {
   name: string;
+  avatar_url: string | null;
   bio: string | null;
   location_ibge_code: string | number | null;
   location_city: string | null;
@@ -57,7 +59,9 @@ export default async function ProfilePage() {
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("name,bio,location_ibge_code,location_city,location_state")
+    .select(
+      "name,avatar_url,bio,location_ibge_code,location_city,location_state",
+    )
     .eq("id", user.id)
     .maybeSingle();
 
@@ -90,6 +94,11 @@ export default async function ProfilePage() {
           Gerencie suas informações públicas no Tatame Market.
         </p>
       </header>
+
+      <ProfileAvatar
+        initialAvatarUrl={profile.avatar_url}
+        name={profile.name}
+      />
 
       <ProfileForm
         initialName={profile.name}

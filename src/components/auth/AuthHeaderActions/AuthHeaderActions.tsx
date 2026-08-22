@@ -2,6 +2,7 @@
 
 import type { User } from "@supabase/supabase-js";
 import { LogOut, UserRound } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -11,6 +12,7 @@ import { createClient } from "@/lib/supabase/client";
 type HeaderProfile = {
   userId: string;
   name: string;
+  avatarUrl: string | null;
 };
 
 function getDisplayName(user: User, profile: HeaderProfile | null) {
@@ -135,6 +137,7 @@ export function AuthHeaderActions({
   }
 
   const displayName = getDisplayName(user, profile);
+  const avatarUrl = profile?.userId === user.id ? profile.avatarUrl : null;
 
   return (
     <div className="relative ml-auto flex items-center gap-3">
@@ -143,8 +146,19 @@ export function AuthHeaderActions({
         className="flex min-w-0 items-center gap-2 rounded-lg px-2 py-1 text-zinc-200 transition hover:bg-zinc-800 hover:text-white"
         title={user.email}
       >
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-[#58C447]/30 bg-[#58C447]/10 text-[#58C447]">
-          <UserRound aria-hidden="true" size={18} />
+        <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#58C447]/30 bg-[#58C447]/10 text-[#58C447]">
+          {avatarUrl ? (
+            <Image
+              src={avatarUrl}
+              alt=""
+              width={36}
+              height={36}
+              sizes="36px"
+              className="size-9 object-cover"
+            />
+          ) : (
+            <UserRound aria-hidden="true" size={18} />
+          )}
         </span>
         <span className="max-w-36 truncate text-sm font-medium">
           {displayName}

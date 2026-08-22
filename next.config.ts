@@ -22,11 +22,19 @@ if (supabaseUrl) {
     pathname: "/storage/v1/object/public/product-images/**",
     search: "",
   });
+
+  supabaseRemotePatterns.push({
+    protocol: parsedSupabaseUrl.protocol === "https:" ? "https" : "http",
+    hostname: parsedSupabaseUrl.hostname,
+    port: parsedSupabaseUrl.port,
+    pathname: "/storage/v1/object/public/avatars/**",
+    search: "",
+  });
 }
 
 const nextConfig: NextConfig = {
   images: {
-    // Restringe o otimizador ao caminho público do bucket deste projeto.
+    // Restringe o otimizador aos buckets públicos de imagem deste projeto.
     remotePatterns: supabaseRemotePatterns,
   },
 };
