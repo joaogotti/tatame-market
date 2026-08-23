@@ -1,7 +1,11 @@
 import { PackageOpen } from "lucide-react";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { PublicProfileHeader } from "@/components/profile/PublicProfileHeader/PublicProfileHeader";
+import { ReviewForm } from "@/components/reviews/ReviewForm/ReviewForm";
+import { ReviewList } from "@/components/reviews/ReviewList/ReviewList";
+import { ReviewSummary } from "@/components/reviews/ReviewSummary/ReviewSummary";
 import { ProductCard } from "@/home/ProductCard/ProductCard";
 import { getFavoriteProductIds } from "@/lib/favorites";
 import {
@@ -13,6 +17,11 @@ import {
   normalizeProductCategory,
   type CatalogProduct,
 } from "@/lib/products";
+import {
+  calculateReviewSummary,
+  type EditableReview,
+  type PublicReview,
+} from "@/lib/reviews";
 import { createClient } from "@/lib/supabase/server";
 
 type DatabasePublicProfile = {
@@ -38,6 +47,21 @@ type DatabaseSellerProduct = {
 
 type DatabaseProductImage = ProductImageRecord & {
   product_id: string | number;
+};
+
+type DatabaseReview = {
+  id: string;
+  reviewer_id: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+type DatabaseReviewAuthor = {
+  id: string;
+  name: string;
+  avatar_url: string | null;
 };
 
 export default async function PublicProfilePage({
@@ -69,7 +93,7 @@ export default async function PublicProfilePage({
   if (!profileData) notFound();
 
   const profile = profileData as DatabasePublicProfile;
-  const [productsResult, authResult] = await Promise.all([
+  const [productsResult, reviewsResult, authResult] = await Promise.all([
     supabase
       .from("products")
       .select(
@@ -77,6 +101,13 @@ export default async function PublicProfilePage({
       )
       .eq("user_id", id)
       .eq("status", "active")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("reviews")
+      .select(
+        "id,reviewer_id,rating,comment,created_at,updated_at",
+      )
+      .eq("seller_id", id)
       .order("created_at", { ascending: false }),
     supabase.auth.getUser(),
   ]);
@@ -88,6 +119,15 @@ export default async function PublicProfilePage({
       message: productsResult.error.message,
     });
     throw new Error("Não foi possível carregar os anúncios deste vendedor.");
+  }
+
+  if (reviewsResult.error) {
+    console.error("Falha ao carregar avaliações do perfil público.", {
+      profileId: id,
+      code: reviewsResult.error.code,
+      message: reviewsResult.error.message,
+    });
+    throw new Error("Não foi possível carregar as avaliações deste vendedor.");
   }
 
   if (
@@ -105,8 +145,34 @@ export default async function PublicProfilePage({
 
   const currentUser = authResult.error ? null : authResult.data.user;
   const databaseProducts = productsResult.data as DatabaseSellerProduct[];
+  const databaseReviews = reviewsResult.data as DatabaseReview[];
   const imagesByProduct = new Map<string, DatabaseProductImage[]>();
   let favoriteProductIds = new Set<string>();
+
+  const reviewerIds = [
+    ...new Set(databaseReviews.map((review) => review.reviewer_id)),
+  ];
+  const reviewAuthorsById = new Map<string, DatabaseReviewAuthor>();
+
+  if (reviewerIds.length > 0) {
+    const { data: authorData, error: authorError } = await supabase
+      .from("profiles")
+      .select("id,name,avatar_url")
+      .in("id", reviewerIds);
+
+    if (authorError) {
+      console.error("Falha ao carregar autores das avaliações.", {
+        profileId: id,
+        code: authorError.code,
+        message: authorError.message,
+      });
+      throw new Error("Não foi possível carregar os autores das avaliações.");
+    }
+
+    for (const author of authorData as DatabaseReviewAuthor[]) {
+      reviewAuthorsById.set(author.id, author);
+    }
+  }
 
   if (databaseProducts.length > 0) {
     const productIds = databaseProducts.map((product) => product.id);
@@ -176,6 +242,37 @@ export default async function PublicProfilePage({
     };
   });
 
+  const reviews: PublicReview[] = databaseReviews.map((review) => {
+    const author = reviewAuthorsById.get(review.reviewer_id);
+
+    return {
+      id: review.id,
+      reviewerId: review.reviewer_id,
+      rating: Number(review.rating),
+      comment: review.comment,
+      createdAt: review.created_at,
+      updatedAt: review.updated_at,
+      author: author
+        ? {
+            name: author.name,
+            avatarUrl: author.avatar_url,
+          }
+        : null,
+    };
+  });
+  const reviewSummary = calculateReviewSummary(reviews);
+  const currentUserReviewData = currentUser
+    ? databaseReviews.find((review) => review.reviewer_id === currentUser.id)
+    : null;
+  const currentUserReview: EditableReview | null = currentUserReviewData
+    ? {
+        id: currentUserReviewData.id,
+        rating: Number(currentUserReviewData.rating),
+        comment: currentUserReviewData.comment,
+      }
+    : null;
+  const isOwnProfile = currentUser?.id === id;
+
   return (
     <div className="mx-auto w-full max-w-6xl px-6 py-10">
       <PublicProfileHeader
@@ -185,8 +282,10 @@ export default async function PublicProfilePage({
         locationCity={profile.location_city}
         locationState={profile.location_state}
         createdAt={profile.created_at}
-        isOwnProfile={currentUser?.id === id}
+        isOwnProfile={isOwnProfile}
       />
+
+      <ReviewSummary summary={reviewSummary} />
 
       <section className="mt-10">
         <div>
@@ -220,6 +319,48 @@ export default async function PublicProfilePage({
             </p>
           </div>
         )}
+      </section>
+
+      <section className="mt-12 border-t border-white/10 pt-10">
+        <div>
+          <span className="text-sm font-medium text-[#58C447]">
+            Reputação
+          </span>
+          <h2 className="mt-1 text-2xl font-bold text-white sm:text-3xl">
+            Avaliações
+          </h2>
+          <p className="mt-2 text-sm text-zinc-400">
+            Experiências compartilhadas por outros usuários do Tatame Market.
+          </p>
+        </div>
+
+        <div className="mt-6">
+          {isOwnProfile ? (
+            <div className="rounded-xl border border-white/10 bg-zinc-900 px-5 py-4 text-sm text-zinc-400">
+              Este é o seu perfil público.
+            </div>
+          ) : currentUser ? (
+            <ReviewForm
+              key={currentUserReview?.id ?? "new-review"}
+              sellerId={id}
+              initialReview={currentUserReview}
+            />
+          ) : (
+            <div className="rounded-xl border border-white/10 bg-zinc-900 px-5 py-4 text-sm text-zinc-400">
+              <Link
+                href="/login"
+                className="font-semibold text-[#58C447] hover:text-[#6AD159]"
+              >
+                Entre
+              </Link>{" "}
+              para avaliar este vendedor.
+            </div>
+          )}
+        </div>
+
+        <div className="mt-6">
+          <ReviewList reviews={reviews} />
+        </div>
       </section>
     </div>
   );

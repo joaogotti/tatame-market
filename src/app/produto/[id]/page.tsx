@@ -12,6 +12,7 @@ import {
   formatProductPrice,
   getMockProductIdFromRoute,
 } from "@/lib/products";
+import { calculateReviewSummary } from "@/lib/reviews";
 import {
   toProductGalleryImages,
   type ProductGalleryImage,
@@ -161,19 +162,24 @@ async function getProduct(id: string): Promise<ProductDetails | null> {
   }
 
   if (data) {
-    const [imagesResult, sellerResult, authResult] = await Promise.all([
-      supabase
-        .from("product_images")
-        .select("storage_path,sort_order,is_primary")
-        .eq("product_id", data.id)
-        .order("sort_order", { ascending: true }),
-      supabase
-        .from("profiles")
-        .select("name,avatar_url,location_city,location_state")
-        .eq("id", data.user_id)
-        .maybeSingle(),
-      supabase.auth.getUser(),
-    ]);
+    const [imagesResult, sellerResult, sellerReviewsResult, authResult] =
+      await Promise.all([
+        supabase
+          .from("product_images")
+          .select("storage_path,sort_order,is_primary")
+          .eq("product_id", data.id)
+          .order("sort_order", { ascending: true }),
+        supabase
+          .from("profiles")
+          .select("name,avatar_url,location_city,location_state")
+          .eq("id", data.user_id)
+          .maybeSingle(),
+        supabase
+          .from("reviews")
+          .select("rating")
+          .eq("seller_id", data.user_id),
+        supabase.auth.getUser(),
+      ]);
 
     if (imagesResult.error) {
       console.error("Falha ao consultar imagens do produto.", {
@@ -192,6 +198,16 @@ async function getProduct(id: string): Promise<ProductDetails | null> {
         message: sellerResult.error.message,
       });
       throw new Error("Não foi possível carregar o vendedor do produto.");
+    }
+
+    if (sellerReviewsResult.error) {
+      console.error("Falha ao consultar reputação do vendedor.", {
+        id,
+        sellerId: data.user_id,
+        code: sellerReviewsResult.error.code,
+        message: sellerReviewsResult.error.message,
+      });
+      throw new Error("Não foi possível carregar a reputação do vendedor.");
     }
 
     const images = toProductGalleryImages(
@@ -225,6 +241,7 @@ async function getProduct(id: string): Promise<ProductDetails | null> {
             avatarUrl: sellerProfile.avatar_url,
             locationCity: sellerProfile.location_city,
             locationState: sellerProfile.location_state,
+            reviewSummary: calculateReviewSummary(sellerReviewsResult.data),
           }
         : null;
 

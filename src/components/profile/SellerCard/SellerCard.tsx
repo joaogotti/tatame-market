@@ -2,7 +2,9 @@ import { MapPin, UserRound } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
+import { ReviewStars } from "@/components/reviews/ReviewStars/ReviewStars";
 import { isAvatarPublicUrl } from "@/lib/profileAvatar";
+import type { ReviewSummaryData } from "@/lib/reviews";
 
 export type PublicSeller = {
   id: string;
@@ -10,6 +12,7 @@ export type PublicSeller = {
   avatarUrl: string | null;
   locationCity: string | null;
   locationState: string | null;
+  reviewSummary: ReviewSummaryData;
 };
 
 export function SellerCard({ seller }: { seller: PublicSeller }) {
@@ -56,6 +59,18 @@ export function SellerCard({ seller }: { seller: PublicSeller }) {
                 <MapPin aria-hidden="true" size={15} />
                 {location}
               </p>
+            )}
+            {seller.reviewSummary.average !== null && (
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-zinc-400">
+                <ReviewStars value={seller.reviewSummary.average} />
+                <span>
+                  {seller.reviewSummary.average.toLocaleString("pt-BR", {
+                    minimumFractionDigits: 1,
+                    maximumFractionDigits: 1,
+                  })}{" "}
+                  ({seller.reviewSummary.count})
+                </span>
+              </div>
             )}
           </div>
         </div>
