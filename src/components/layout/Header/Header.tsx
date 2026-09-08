@@ -2,6 +2,7 @@ import { AuthHeaderActions } from "@/components/auth/AuthHeaderActions/AuthHeade
 import { isAvatarPublicUrl } from "@/lib/profileAvatar";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import Image from "next/image";
 import { Suspense } from "react";
 import { Navigation } from "@/components/layout/Navigation/Navigation";
 
@@ -67,8 +68,14 @@ export async function Header() {
     <header className="market-header">
       <div className="market-header-inner">
         <Link href="/" aria-label="Tatame Market — início" className="market-brand">
-          <span>Tatame<span className="text-[#58C447]">.</span></span>
-          <span className="market-brand-subtitle">Market</span>
+          <Image
+            src="/branding/logo-tatame-market.png"
+            alt="Tatame Market"
+            width={144}
+            height={48}
+            sizes="(max-width: 379px) 96px, (max-width: 767px) 108px, (max-width: 1023px) 120px, 144px"
+            className="h-auto w-[144px] shrink-0 object-contain max-lg:w-[120px] max-md:w-[108px] max-[379px]:w-24"
+          />
         </Link>
         <Suspense fallback={null}><Navigation variant="header" /></Suspense>
         <AuthHeaderActions profile={profile} />

@@ -1,8 +1,8 @@
 "use client";
 
 import type { User } from "@supabase/supabase-js";
-import { Bell, LogOut, UserRound } from "lucide-react";
-import Image from "next/image";
+import { Bell } from "lucide-react";
+import { ProfileMenu } from "@/components/auth/ProfileMenu/ProfileMenu";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -159,44 +159,14 @@ export function AuthHeaderActions({
         + <span className="market-create-label">Criar anúncio</span><span className="market-create-short">Anunciar</span>
       </Link>
       <HeaderNotifications />
-      <div className="market-account">
-        <Link
-          href="/perfil"
-          className="market-profile"
-          aria-label={`Meu perfil: ${displayName}`}
-          title={user.email}
-        >
-          <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#58C447]/30 bg-[#58C447]/10 text-[#58C447]">
-            {avatarUrl ? (
-              <Image
-                src={avatarUrl}
-                alt=""
-                width={36}
-                height={36}
-                sizes="36px"
-                className="size-9 object-cover"
-              />
-            ) : (
-              <UserRound aria-hidden="true" size={18} />
-            )}
-          </span>
-          <span className="market-profile-name">
-            {displayName}
-          </span>
-        </Link>
-
-        <button
-          type="button"
-          disabled={isSigningOut}
-          className="market-logout"
-          aria-label={isSigningOut ? "Saindo..." : "Sair"}
-          onClick={handleSignOut}
-        >
-          <LogOut aria-hidden="true" size={16} />
-          <span>{isSigningOut ? "Saindo..." : "Sair"}</span>
-        </button>
-      </div>
-
+      <ProfileMenu
+        key={user.id}
+        displayName={displayName}
+        avatarUrl={avatarUrl}
+        email={user.email}
+        isSigningOut={isSigningOut}
+        onSignOut={handleSignOut}
+      />
       {logoutError && (
         <p
           role="alert"
