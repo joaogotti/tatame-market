@@ -8,6 +8,7 @@ import {
 } from "@/components/home/Categories/Categories";
 import { ProductCard } from "@/components/products/ProductCard/ProductCard";
 import type { CatalogProduct } from "@/lib/products";
+import styles from "./ProductCatalog.module.css";
 
 type ProductCatalogProps = {
   products: CatalogProduct[];
@@ -36,14 +37,14 @@ export function ProductCatalog({ products }: ProductCatalogProps) {
         onSelectCategory={setSelectedCategory}
       />
 
-      <section className="mx-6 mt-10">
+      <section className={styles.section}>
         <h2 className="mb-5 text-2xl font-bold text-white">
           Anúncios recentes
         </h2>
 
-        <div className="flex flex-wrap gap-5">
+        <div className={styles.grid}>
           {filteredProducts.map((product) => (
-            <ProductCard key={product.key} product={product} />
+            <ProductCard key={product.key} product={product} variant="compact" />
           ))}
         </div>
       </section>

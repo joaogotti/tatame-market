@@ -39,17 +39,16 @@ body {
   background: #111512;
 }
 .market-header-inner {
-  max-width: 1600px;
+  width: 100%;
   min-height: 76px;
-  margin-inline: auto;
-  padding: 12px 28px;
+  padding: 12px 20px;
   display: flex;
   align-items: center;
-  gap: 28px;
+  gap: 24px;
 }
 .market-brand {
   display: flex;
-  flex: 0 0 172px;
+  flex: 0 0 184px;
   flex-direction: column;
   align-items: flex-start;
   font-size: 23px;
@@ -66,6 +65,7 @@ body {
   text-transform: uppercase;
 }
 .market-nav { display: flex; gap: 4px; }
+.market-nav--header { align-items: center; gap: 6px; }
 .market-nav-link {
   display: flex;
   align-items: center;
@@ -87,6 +87,7 @@ body {
 }
 .market-nav--header .market-nav-link[aria-current="page"] { box-shadow: inset 0 -2px #58c447; }
 .market-auth { position: relative; margin-left: auto; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.market-account { display: flex; align-items: center; gap: 2px; min-width: 0; padding-left: 8px; border-left: 1px solid #ffffff0d; }
 .market-create {
   display: inline-flex;
   align-items: center;
@@ -147,15 +148,15 @@ body {
 .market-sell-card h2 { font-size: 13px; font-weight: 600; }
 .market-sell-card p { margin-top: 7px; margin-bottom: 16px; color: #95a098; font-size: 12px; line-height: 1.6; }
 .market-sell-card .market-create { width: 100%; }
-.market-content { width: 100%; max-width: 1372px; margin-inline: auto; min-width: 0; flex: 1; display: flex; flex-direction: column; padding: 8px 12px 0; }
+.market-content { width: 100%; margin-inline: 0; min-width: 0; flex: 1; display: flex; flex-direction: column; padding: 4px 4px 0; }
 .market-content > main { flex: 1; min-width: 0; }
-.market-footer { margin: 40px 24px 0; padding-block: 24px; border-top: 1px solid #ffffff0d; color: #7f8b82; font-size: 12px; }
+.market-footer { margin: 32px 24px 0; padding-block: 24px; border-top: 1px solid #ffffff0d; color: #7f8b82; font-size: 12px; }
 .market-skip-link { position: fixed; top: 8px; left: 8px; z-index: 50; transform: translateY(-150%); padding: 12px; border-radius: 8px; background: #171e18; }
 .market-skip-link:focus { transform: translateY(0); }
 .market-header :focus-visible, .market-sidebar :focus-visible, .market-skip-link:focus-visible { outline: 2px solid #79d36b; outline-offset: 3px; }
 
 @media (max-width: 1279px) {
-  .market-header-inner { gap: 16px; padding-inline: 20px; }
+  .market-header-inner { gap: 16px; padding-inline: 16px; }
   .market-brand { flex-basis: 140px; }
   .market-nav--header .market-nav-link { padding-inline: 8px; }
   .market-profile-name { max-width: 76px; }
@@ -177,6 +178,7 @@ body {
   .market-content { padding: 0; }
   .market-profile-name { display: none; }
   .market-auth { gap: 4px; }
+  .market-account { padding-left: 0; border-left: 0; }
   .market-profile { padding: 2px; }
   .market-create { padding: 9px 10px; }
   .market-create-label { display: none; }

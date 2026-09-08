@@ -1,0 +1,100 @@
+.card {
+  position: relative;
+  container-type: inline-size;
+  min-width: 0;
+  border: 1px solid #ffffff12;
+  border-radius: 12px;
+  background: #161c18;
+  transition: transform 160ms, border-color 160ms;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  border-color: #79d36b66;
+}
+
+.link {
+  display: block;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 11px;
+}
+
+.link:focus-visible {
+  outline: 2px solid #79d36b;
+  outline-offset: 3px;
+}
+
+.media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: #0e120f;
+}
+
+.image { object-fit: cover; transition: transform 160ms; }
+.card:hover .image { transform: scale(1.02); }
+
+.fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 8px 30px;
+  color: #929d95;
+  text-align: center;
+}
+
+.fallback svg { width: 24px; height: 24px; }
+
+.location {
+  position: absolute;
+  inset: auto 0 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 20px 10px 8px;
+  background: linear-gradient(transparent, #000000c7);
+  color: #f1f3f1;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.location svg { flex-shrink: 0; }
+.location span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.details { padding: 11px 12px 13px; border-top: 1px solid #ffffff08; }
+
+.title {
+  display: -webkit-box;
+  min-height: 2.8em;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow-wrap: anywhere;
+  color: #f1f3f1;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.price {
+  display: block;
+  margin-top: 7px;
+  color: #58c447;
+  font-size: 16px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+/* O card relativo começa na imagem; o favorito é irmão do link. */
+.favorite { position: absolute; top: 8px; right: 8px; z-index: 10; }
+.favorite [role="alert"] { width: min(16rem, calc(100cqi - 16px)); }
+
+@media (prefers-reduced-motion: reduce) {
+  .card, .image { transition: none; }
+  .card:hover, .card:hover .image { transform: none; }
+}
