@@ -294,7 +294,7 @@ export default async function ProductPage({
   }
 
   return (
-    <article className="mx-auto w-full max-w-6xl px-6 py-10">
+    <article className="w-full px-6 py-10">
       <div className="grid overflow-hidden rounded-2xl border border-white/10 bg-zinc-900 lg:grid-cols-2">
         <ProductImageGallery images={product.images} title={product.title} />
 

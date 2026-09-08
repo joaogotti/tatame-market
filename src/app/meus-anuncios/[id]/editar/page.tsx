@@ -98,7 +98,7 @@ export default async function EditProductPage({
   };
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-6 py-10">
+    <div className="w-full px-6 py-10">
       <header>
         <span className="text-sm font-medium text-[#58C447]">
           Gerenciar anúncio
@@ -111,7 +111,9 @@ export default async function EditProductPage({
         </p>
       </header>
 
-      <EditProductForm product={product} />
+      <div className="max-w-[53rem]">
+        <EditProductForm product={product} />
+      </div>
     </div>
   );
 }

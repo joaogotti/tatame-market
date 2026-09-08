@@ -156,7 +156,7 @@ export default async function ConversationPage({
   const otherParty = `${userIsBuyer ? "Vendedor" : "Comprador"} · ${otherPartyId.slice(0, 8)}`;
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-6 py-10">
+    <div className="w-full px-6 py-10">
       <MessageRealtimeListener
         conversationId={conversation.id}
         visibleMessageIds={messages.map((message) => message.id)}
@@ -169,7 +169,7 @@ export default async function ConversationPage({
         ← Voltar para mensagens
       </Link>
 
-      <section className="mt-5 overflow-hidden rounded-2xl border border-white/10 bg-zinc-900">
+      <section className="mt-5 max-w-[53rem] overflow-hidden rounded-2xl border border-white/10 bg-zinc-900">
         <header className="flex items-center gap-4 border-b border-white/10 p-4 sm:p-6">
           <div className="relative size-16 shrink-0 overflow-hidden rounded-xl bg-zinc-950 sm:size-20">
             {imageUrl ? (

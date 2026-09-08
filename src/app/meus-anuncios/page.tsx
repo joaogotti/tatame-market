@@ -122,7 +122,7 @@ export default async function MyProductsPage() {
   });
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-6 py-10">
+    <div className="w-full px-6 py-10">
       <header>
         <span className="text-sm font-medium text-[#58C447]">Sua conta</span>
         <h1 className="mt-2 text-3xl font-bold text-white sm:text-4xl">

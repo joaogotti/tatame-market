@@ -274,7 +274,7 @@ export default async function PublicProfilePage({
   const isOwnProfile = currentUser?.id === id;
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-6 py-10">
+    <div className="w-full px-6 py-10">
       <PublicProfileHeader
         name={profile.name}
         avatarUrl={profile.avatar_url}

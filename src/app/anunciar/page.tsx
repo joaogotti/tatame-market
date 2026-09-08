@@ -7,7 +7,7 @@ import { CreateProductForm } from "@/components/products/CreateProductForm/Creat
  */
 export default function CreateProductPage() {
   return (
-    <div className="mx-auto w-full max-w-4xl px-6 py-10">
+    <div className="w-full px-6 py-10">
       <header>
         <span className="text-sm font-medium text-[#58C447]">
           Novo anúncio
@@ -21,7 +21,9 @@ export default function CreateProductPage() {
         </p>
       </header>
 
-      <CreateProductForm />
+      <div className="max-w-[53rem]">
+        <CreateProductForm />
+      </div>
     </div>
   );
 }
