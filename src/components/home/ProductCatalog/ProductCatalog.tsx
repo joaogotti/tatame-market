@@ -5,8 +5,8 @@ import { useState } from "react";
 import {
   Categories,
   type SelectedCategory,
-} from "@/home/Categories/Categories";
-import { ProductCard } from "@/home/ProductCard/ProductCard";
+} from "@/components/home/Categories/Categories";
+import { ProductCard } from "@/components/products/ProductCard/ProductCard";
 import type { CatalogProduct } from "@/lib/products";
 
 type ProductCatalogProps = {

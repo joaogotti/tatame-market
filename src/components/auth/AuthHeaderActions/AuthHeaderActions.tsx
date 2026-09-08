@@ -1,11 +1,12 @@
 "use client";
 
 import type { User } from "@supabase/supabase-js";
-import { LogOut, UserRound } from "lucide-react";
+import { Bell, LogOut, UserRound } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { MessageNotificationIndicator } from "@/components/messages/MessageNotificationIndicator/MessageNotificationIndicator";
 
 import { createClient } from "@/lib/supabase/client";
 
@@ -14,6 +15,17 @@ type HeaderProfile = {
   name: string;
   avatarUrl: string | null;
 };
+
+function HeaderNotifications() {
+  return (
+    <Link href="/mensagens" aria-label="Notificações de mensagens" className="market-notifications">
+      <Bell size={19} strokeWidth={1.7} aria-hidden="true" />
+      <span className="market-notification-dot">
+        <Suspense fallback={null}><MessageNotificationIndicator /></Suspense>
+      </span>
+    </Link>
+  );
+}
 
 function getDisplayName(user: User, profile: HeaderProfile | null) {
   if (profile?.userId === user.id && profile.name.trim()) {
@@ -109,29 +121,31 @@ export function AuthHeaderActions({
     return (
       <div
         aria-label="Verificando autenticação"
-        className="ml-auto flex items-center gap-3"
+        className="market-auth"
       >
-        <span className="h-9 w-20 animate-pulse rounded-lg bg-zinc-800 motion-reduce:animate-none" />
-        <span className="h-10 w-28 animate-pulse rounded-lg bg-zinc-800 motion-reduce:animate-none" />
+        <span className="h-9 w-16 animate-pulse rounded-lg bg-zinc-800 motion-reduce:animate-none sm:w-28" />
+        <HeaderNotifications />
+        <span className="h-9 w-9 animate-pulse rounded-lg bg-zinc-800 motion-reduce:animate-none sm:w-20" />
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="ml-auto flex items-center gap-3">
+      <div className="market-auth">
         <Link
           href="/login"
-          className="rounded-lg px-4 py-2 font-medium text-zinc-300 transition hover:bg-zinc-800 hover:text-white"
+          className="market-login"
         >
           Entrar
         </Link>
         <Link
           href="/login"
-          className="rounded-lg bg-[#F5F5F5] px-5 py-2 font-semibold text-[#111412] transition hover:bg-[#DADADA]"
+          className="market-create market-header-create"
         >
-          + Anunciar
+          + <span className="market-create-label">Criar anúncio</span><span className="market-create-short">Anunciar</span>
         </Link>
+        <HeaderNotifications />
       </div>
     );
   }
@@ -140,10 +154,15 @@ export function AuthHeaderActions({
   const avatarUrl = profile?.userId === user.id ? profile.avatarUrl : null;
 
   return (
-    <div className="relative ml-auto flex items-center gap-3">
+    <div className="market-auth">
+      <Link href="/anunciar" className="market-create market-header-create">
+        + <span className="market-create-label">Criar anúncio</span><span className="market-create-short">Anunciar</span>
+      </Link>
+      <HeaderNotifications />
       <Link
         href="/perfil"
-        className="flex min-w-0 items-center gap-2 rounded-lg px-2 py-1 text-zinc-200 transition hover:bg-zinc-800 hover:text-white"
+        className="market-profile"
+        aria-label={`Meu perfil: ${displayName}`}
         title={user.email}
       >
         <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#58C447]/30 bg-[#58C447]/10 text-[#58C447]">
@@ -160,7 +179,7 @@ export function AuthHeaderActions({
             <UserRound aria-hidden="true" size={18} />
           )}
         </span>
-        <span className="max-w-36 truncate text-sm font-medium">
+        <span className="market-profile-name">
           {displayName}
         </span>
       </Link>
@@ -168,19 +187,13 @@ export function AuthHeaderActions({
       <button
         type="button"
         disabled={isSigningOut}
-        className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 transition hover:bg-zinc-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+        className="market-logout"
+        aria-label={isSigningOut ? "Saindo..." : "Sair"}
         onClick={handleSignOut}
       >
         <LogOut aria-hidden="true" size={16} />
-        {isSigningOut ? "Saindo..." : "Sair"}
+        <span>{isSigningOut ? "Saindo..." : "Sair"}</span>
       </button>
-
-      <Link
-        href="/anunciar"
-        className="rounded-lg bg-[#F5F5F5] px-5 py-2 font-semibold text-[#111412] transition hover:bg-[#DADADA]"
-      >
-        + Anunciar
-      </Link>
 
       {logoutError && (
         <p

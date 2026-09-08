@@ -1,5 +1,5 @@
-import { Hero } from "@/home/Hero/Hero";
-import { ProductCatalog } from "@/home/ProductCatalog/ProductCatalog";
+import { Hero } from "@/components/home/Hero/Hero";
+import { ProductCatalog } from "@/components/home/ProductCatalog/ProductCatalog";
 import { mockProducts } from "@/constants/mockProducts";
 import {
   getMockProductHref,

@@ -6,7 +6,7 @@ import { PublicProfileHeader } from "@/components/profile/PublicProfileHeader/Pu
 import { ReviewForm } from "@/components/reviews/ReviewForm/ReviewForm";
 import { ReviewList } from "@/components/reviews/ReviewList/ReviewList";
 import { ReviewSummary } from "@/components/reviews/ReviewSummary/ReviewSummary";
-import { ProductCard } from "@/home/ProductCard/ProductCard";
+import { ProductCard } from "@/components/products/ProductCard/ProductCard";
 import { getFavoriteProductIds } from "@/lib/favorites";
 import {
   getProductImagePublicUrl,

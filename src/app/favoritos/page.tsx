@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { ProductCard } from "@/home/ProductCard/ProductCard";
+import { ProductCard } from "@/components/products/ProductCard/ProductCard";
 import { getFavoriteProductIds } from "@/lib/favorites";
 import {
   getProductImagePublicUrl,

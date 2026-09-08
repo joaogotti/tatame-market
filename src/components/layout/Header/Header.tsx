@@ -1,6 +1,9 @@
 import { AuthHeaderActions } from "@/components/auth/AuthHeaderActions/AuthHeaderActions";
 import { isAvatarPublicUrl } from "@/lib/profileAvatar";
 import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
+import { Suspense } from "react";
+import { Navigation } from "@/components/layout/Navigation/Navigation";
 
 type HeaderProfile = {
   userId: string;
@@ -61,20 +64,15 @@ export async function Header() {
   }
 
   return (
-    <header className="h-16 border-b border-zinc-800 bg-[#111412] px-6 flex items-center gap-8">
-      <h1 className="text-xl font-bold text-[#F5F5F5] whitespace-nowrap">
-        Tatame Market
-      </h1>
-
-      <div className="flex-1 max-w-xl">
-        <input
-          type="text"
-          placeholder="Buscar no Tatame Market..."
-          className="w-full rounded-lg border border-zinc-700 bg-[#181B19] px-4 py-2 text-[#F5F5F5] outline-none placeholder:text-[#777A78] focus:border-zinc-500"
-        />
+    <header className="market-header">
+      <div className="market-header-inner">
+        <Link href="/" aria-label="Tatame Market — início" className="market-brand">
+          <span>Tatame<span className="text-[#58C447]">.</span></span>
+          <span className="market-brand-subtitle">Market</span>
+        </Link>
+        <Suspense fallback={null}><Navigation variant="header" /></Suspense>
+        <AuthHeaderActions profile={profile} />
       </div>
-
-      <AuthHeaderActions profile={profile} />
     </header>
   );
 }
