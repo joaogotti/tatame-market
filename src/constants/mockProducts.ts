@@ -30,6 +30,9 @@ export type Product = {
   title: string;
   price: number;
   location: string;
+  locationCity: string;
+  locationState: string;
+  locationIbgeCode: number | null;
   image: string;
   category: ProductCategory;
   size: string;
@@ -44,6 +47,9 @@ export const mockProducts: Product[] = [
     title: "Kimono Atama Mundial A2",
     price: 450,
     location: "Vitória, ES",
+    locationCity: "Vitória",
+    locationState: "ES",
+    locationIbgeCode: 3205309,
     image: "/products/kimono-atama.jpg",
     category: "Kimonos",
     size: "A2",
@@ -56,6 +62,9 @@ export const mockProducts: Product[] = [
     title: "Faixa Preta Jiu-Jitsu",
     price: 120,
     location: "Vila Velha, ES",
+    locationCity: "Vila Velha",
+    locationState: "ES",
+    locationIbgeCode: 3205200,
     image: "/products/faixa-preta.jpg",
     category: "Faixas",
     size: "A2",
@@ -68,6 +77,9 @@ export const mockProducts: Product[] = [
     title: "Rashguard Manga Longa",
     price: 180,
     location: "Serra, ES",
+    locationCity: "Serra",
+    locationState: "ES",
+    locationIbgeCode: 3205002,
     image: "/products/rashguard.jpg",
     category: "Rashguards",
     size: "M",
@@ -80,6 +92,9 @@ export const mockProducts: Product[] = [
     title: "Kimono Kingz Comp V6 A1",
     price: 550,
     location: "Cariacica, ES",
+    locationCity: "Cariacica",
+    locationState: "ES",
+    locationIbgeCode: 3201308,
     image: "/products/kimono-kingz.jpg",
     category: "Kimonos",
     size: "A1",

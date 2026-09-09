@@ -4,6 +4,7 @@ import { mockProducts } from "@/constants/mockProducts";
 import {
   getMockProductHref,
   normalizeProductCategory,
+  normalizeLocationIbgeCode,
   type CatalogProduct,
 } from "@/lib/products";
 import {
@@ -23,6 +24,7 @@ type DatabaseCatalogProduct = {
   size: string;
   location_city: string;
   location_state: string;
+  location_ibge_code?: string | number | null;
   created_at: string;
 };
 
@@ -49,6 +51,9 @@ function normalizeDatabaseProduct(
     title: product.title,
     price,
     location: `${product.location_city}, ${product.location_state}`,
+    locationCity: product.location_city,
+    locationState: product.location_state,
+    locationIbgeCode: normalizeLocationIbgeCode(product.location_ibge_code),
     image,
     category,
     size: product.size,
@@ -68,6 +73,9 @@ function normalizeMockProduct(
     title: product.title,
     price: product.price,
     location: product.location,
+    locationCity: product.locationCity,
+    locationState: product.locationState,
+    locationIbgeCode: product.locationIbgeCode,
     image: product.image,
     category: product.category,
     size: product.size,
@@ -82,7 +90,7 @@ async function getDatabaseProducts(): Promise<CatalogProduct[]> {
   const { data, error } = await supabase
     .from("products")
     .select(
-      "id,title,category,price,condition,size,location_city,location_state,created_at",
+      "id,title,category,price,condition,size,location_city,location_state,location_ibge_code,created_at",
     )
     .eq("status", "active")
     .order("created_at", { ascending: false });

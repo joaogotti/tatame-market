@@ -6,7 +6,7 @@ import {
 
 type CatalogProductBase = Pick<
   Product,
-  "title" | "price" | "location" | "category" | "size" | "condition"
+  "title" | "price" | "location" | "locationCity" | "locationState" | "locationIbgeCode" | "category" | "size" | "condition"
 > & {
   key: string;
   href: string;
@@ -26,6 +26,16 @@ export type CatalogProduct = CatalogProductBase &
         isFavorite: false;
       }
   );
+
+/** Preserva códigos numéricos e representa registros legados sem código como null. */
+export function normalizeLocationIbgeCode(value: string | number | null | undefined): number | null {
+  if (value == null || (typeof value === "string" && !/^\d+$/.test(value.trim()))) {
+    return null;
+  }
+
+  const code = Number(value);
+  return Number.isSafeInteger(code) && code > 0 ? code : null;
+}
 
 export const productStatuses = ["active", "paused", "sold"] as const;
 

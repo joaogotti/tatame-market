@@ -1,4 +1,4 @@
-import { normalizeProductCategory } from "@/lib/products";
+import { normalizeLocationIbgeCode, normalizeProductCategory } from "@/lib/products";
 import type { CatalogFilters } from "@/lib/productSearch";
 
 type CatalogSearchParams = Record<string, string | string[] | undefined>;
@@ -17,5 +17,6 @@ export function parseCatalogParams(params: CatalogSearchParams): CatalogFilters 
     category: normalizeProductCategory(firstValue(params.categoria)),
     condition: condition === "Novo" || condition === "Usado" ? condition : null,
     size: firstValue(params.tamanho).trim() || null,
+    locationIbgeCode: normalizeLocationIbgeCode(firstValue(params.localizacao)),
   };
 }

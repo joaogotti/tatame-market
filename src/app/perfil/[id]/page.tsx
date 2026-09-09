@@ -15,6 +15,7 @@ import {
 } from "@/lib/productImages";
 import {
   normalizeProductCategory,
+  normalizeLocationIbgeCode,
   type CatalogProduct,
 } from "@/lib/products";
 import {
@@ -42,6 +43,7 @@ type DatabaseSellerProduct = {
   size: string;
   location_city: string;
   location_state: string;
+  location_ibge_code?: string | number | null;
   created_at: string;
 };
 
@@ -97,7 +99,7 @@ export default async function PublicProfilePage({
     supabase
       .from("products")
       .select(
-        "id,title,category,price,condition,size,location_city,location_state,created_at",
+        "id,title,category,price,condition,size,location_city,location_state,location_ibge_code,created_at",
       )
       .eq("user_id", id)
       .eq("status", "active")
@@ -231,6 +233,9 @@ export default async function PublicProfilePage({
       title: product.title,
       price,
       location: `${product.location_city}, ${product.location_state}`,
+      locationCity: product.location_city,
+      locationState: product.location_state,
+      locationIbgeCode: normalizeLocationIbgeCode(product.location_ibge_code),
       image: primaryImage
         ? getProductImagePublicUrl(supabase, primaryImage.storage_path)
         : null,
