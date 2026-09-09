@@ -86,7 +86,7 @@
   background: transparent;
   font-size: 12px;
   opacity: 1;
-  cursor: not-allowed;
+  cursor: auto;
   -webkit-text-fill-color: #b2bcb5;
 }
 
@@ -103,12 +103,11 @@
   border-radius: 8px;
   background: #58c447;
   color: #10180e;
-  cursor: not-allowed;
+  cursor: pointer;
   transition: background-color 150ms;
 }
 
 .searchButton:hover { background: #70d25f; }
-.searchStatus { margin-top: 7px; color: #929f96; font-size: 11px; }
 
 .benefits {
   display: flex;

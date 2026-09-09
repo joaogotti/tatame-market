@@ -1,5 +1,4 @@
-import { Hero } from "@/components/home/Hero/Hero";
-import { ProductCatalog } from "@/components/home/ProductCatalog/ProductCatalog";
+import { HomeCatalog } from "@/components/home/HomeCatalog/HomeCatalog";
 import { mockProducts } from "@/constants/mockProducts";
 import {
   getMockProductHref,
@@ -184,11 +183,7 @@ export default async function Home() {
 
   return (
     <div>
-      {/* Área principal de apresentação do marketplace */}
-      <Hero />
-
-      {/* O estado do filtro fica isolado neste Client Component. */}
-      <ProductCatalog products={products} />
+      <HomeCatalog products={products} />
     </div>
   );
 }

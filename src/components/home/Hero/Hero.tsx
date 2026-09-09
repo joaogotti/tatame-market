@@ -1,6 +1,7 @@
 import { BadgeCheck, Search, ShieldCheck, UsersRound } from "lucide-react";
 import Image from "next/image";
 import { productCategories } from "@/constants/mockProducts";
+import type { CatalogFilters } from "@/lib/productSearch";
 import styles from "./Hero.module.css";
 
 const benefits = [
@@ -9,7 +10,13 @@ const benefits = [
   { label: "Negociação segura", icon: ShieldCheck },
 ];
 
-export function Hero() {
+type HeroProps = CatalogFilters & {
+  onQueryChange: (query: string) => void;
+  onCategoryChange: (category: CatalogFilters["category"]) => void;
+  onSearch: () => void;
+};
+
+export function Hero({ query, category, onQueryChange, onCategoryChange, onSearch }: HeroProps) {
   return (
     <section className={styles.hero} aria-labelledby="hero-title">
       <div className={styles.visual}>
@@ -34,27 +41,40 @@ export function Hero() {
           Conecte-se com praticantes de todo o Brasil.
         </p>
 
-        {/* O filtro atual pertence ao catálogo. Estes controles ainda não o alteram. */}
-        <fieldset disabled className={styles.search} aria-describedby="hero-search-status">
-          <legend className="sr-only">Buscar produtos</legend>
+        <form
+          role="search"
+          aria-label="Buscar produtos"
+          className={styles.search}
+          onSubmit={(event) => {
+            event.preventDefault();
+            onSearch();
+          }}
+        >
           <label className={styles.query}>
             <span className="sr-only">Produto ou marca</span>
-            <input type="search" placeholder="Buscar por kimonos, faixas, marcas..." />
+            <input
+              type="search"
+              placeholder="Buscar por kimonos, faixas, marcas..."
+              value={query}
+              onChange={(event) => onQueryChange(event.target.value)}
+            />
           </label>
           <label className={styles.category}>
             <span className="sr-only">Categoria</span>
-            <select defaultValue="">
+            <select
+              value={category ?? ""}
+              onChange={(event) => onCategoryChange(event.target.value || null)}
+            >
               <option value="">Todas as categorias</option>
               {productCategories.map((category) => (
                 <option key={category} value={category}>{category}</option>
               ))}
             </select>
           </label>
-          <button type="button" aria-label="Buscar produtos (em breve)" className={styles.searchButton}>
+          <button type="submit" aria-label="Buscar produtos" className={styles.searchButton}>
             <Search size={20} strokeWidth={2} aria-hidden="true" />
           </button>
-        </fieldset>
-        <p id="hero-search-status" className={styles.searchStatus}>Busca em breve.</p>
+        </form>
 
         <ul className={styles.benefits}>
           {benefits.map(({ label, icon: Icon }) => (

@@ -4,12 +4,11 @@ import {
   type ProductCategory,
 } from "@/constants/mockProducts";
 import styles from "./Categories.module.css";
-
-export type SelectedCategory = "Todos" | ProductCategory;
+import type { CatalogFilters } from "@/lib/productSearch";
 
 type CategoriesProps = {
-  selectedCategory: SelectedCategory;
-  onSelectCategory: (category: SelectedCategory) => void;
+  selectedCategory: CatalogFilters["category"];
+  onSelectCategory: (category: CatalogFilters["category"]) => void;
 };
 
 const categoryImages: Record<ProductCategory, { src: string; alt: string }> = {
@@ -37,8 +36,8 @@ export function Categories({
         <button
           type="button"
           className={styles.viewAll}
-          aria-pressed={selectedCategory === "Todos"}
-          onClick={() => onSelectCategory("Todos")}
+          aria-pressed={selectedCategory === null}
+          onClick={() => onSelectCategory(null)}
         >
           Ver todos
         </button>
