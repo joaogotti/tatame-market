@@ -10,8 +10,12 @@ function firstValue(value: string | string[] | undefined): string {
 }
 
 export function parseCatalogParams(params: CatalogSearchParams): CatalogFilters {
+  const condition = firstValue(params.condicao).trim();
+
   return {
     query: firstValue(params.q).trim().replace(/\s+/g, " "),
     category: normalizeProductCategory(firstValue(params.categoria)),
+    condition: condition === "Novo" || condition === "Usado" ? condition : null,
+    size: firstValue(params.tamanho).trim() || null,
   };
 }

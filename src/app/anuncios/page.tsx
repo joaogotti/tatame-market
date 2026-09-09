@@ -2,12 +2,14 @@ import { ListingFilters } from "@/components/products/ListingFilters/ListingFilt
 import { ProductGrid } from "@/components/products/ProductGrid/ProductGrid";
 import { loadCatalogProducts } from "@/lib/catalog.server";
 import { parseCatalogParams } from "@/lib/catalogParams";
-import { filterCatalogProducts } from "@/lib/productSearch";
+import { filterCatalogProducts, getAvailableSizes } from "@/lib/productSearch";
 
 export default async function ListingsPage({ searchParams }: PageProps<"/anuncios">) {
   const filters = parseCatalogParams(await searchParams);
   const products = await loadCatalogProducts();
-  const filteredProducts = filterCatalogProducts(products, filters);
+  const matchingProducts = filterCatalogProducts(products, { ...filters, size: null });
+  const availableSizes = getAvailableSizes(matchingProducts);
+  const filteredProducts = filterCatalogProducts(matchingProducts, filters);
 
   return (
     <div className="w-full px-6 py-10">
@@ -17,7 +19,7 @@ export default async function ListingsPage({ searchParams }: PageProps<"/anuncio
           Encontre equipamentos de Jiu-Jitsu anunciados pela comunidade.
         </p>
       </header>
-      <ListingFilters key={JSON.stringify(filters)} {...filters} />
+      <ListingFilters key={JSON.stringify(filters)} {...filters} availableSizes={availableSizes} />
       <section className="mt-8" aria-label="Resultados da busca">
         <ProductGrid products={filteredProducts} />
       </section>
