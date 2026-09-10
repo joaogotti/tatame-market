@@ -1,7 +1,14 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  type ReactNode,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { createClient } from "@/lib/supabase/client";
 
@@ -15,20 +22,25 @@ type ConversationParticipants = {
   seller_id: string;
 };
 
-export function MessageNotificationIndicator() {
+const MessageNotificationContext = createContext(false);
+
+export function MessageNotificationProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [supabase] = useState(createClient);
   const [userId, setUserId] = useState<string | null>(null);
-  const [hasNewMessage, setHasNewMessage] = useState(false);
+  const [unreadConversationIds, setUnreadConversationIds] = useState<string[]>([]);
+  const userIdRef = useRef<string | null>(null);
   const pathnameRef = useRef(pathname);
 
   useEffect(() => {
     pathnameRef.current = pathname;
 
-    if (!pathname.startsWith("/mensagens")) return;
+    if (!pathname.startsWith("/mensagens/")) return;
 
     const timeoutId = window.setTimeout(() => {
-      setHasNewMessage(false);
+      setUnreadConversationIds((ids) =>
+        ids.filter((id) => pathname !== `/mensagens/${id}`),
+      );
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
@@ -36,27 +48,35 @@ export function MessageNotificationIndicator() {
 
   useEffect(() => {
     let isActive = true;
+    let authVersion = 0;
+
+    function updateUser(nextUserId: string | null) {
+      if (userIdRef.current !== nextUserId) {
+        userIdRef.current = nextUserId;
+        setUnreadConversationIds([]);
+      }
+      setUserId(nextUserId);
+    }
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!isActive) return;
 
-      setUserId(session?.user.id ?? null);
-
-      if (!session?.user) {
-        setHasNewMessage(false);
-      }
+      authVersion += 1;
+      updateUser(session?.user.id ?? null);
     });
 
+    const initialAuthVersion = authVersion;
     supabase.auth
       .getUser()
       .then(({ data, error }) => {
-        if (!isActive) return;
+        if (!isActive || authVersion !== initialAuthVersion) return;
 
-        setUserId(error ? null : (data.user?.id ?? null));
+        updateUser(error ? null : (data.user?.id ?? null));
       })
       .catch(() => {
-        if (isActive) setUserId(null);
+        if (isActive && authVersion === initialAuthVersion) updateUser(null);
       });
 
     return () => {
@@ -83,9 +103,10 @@ export function MessageNotificationIndicator() {
 
           if (
             !isActive ||
+            userIdRef.current !== userId ||
             !message.conversation_id ||
             message.sender_id === userId ||
-            pathnameRef.current.startsWith("/mensagens")
+            pathnameRef.current === `/mensagens/${message.conversation_id}`
           ) {
             return;
           }
@@ -98,7 +119,14 @@ export function MessageNotificationIndicator() {
             .eq("id", message.conversation_id)
             .maybeSingle();
 
-          if (!isActive) return;
+          // A rota e a sessão podem mudar enquanto a consulta está em andamento.
+          if (
+            !isActive ||
+            userIdRef.current !== userId ||
+            pathnameRef.current === `/mensagens/${message.conversation_id}`
+          ) {
+            return;
+          }
 
           if (error) {
             console.error("Falha ao validar notificação de mensagem.", {
@@ -117,7 +145,11 @@ export function MessageNotificationIndicator() {
             (conversation.buyer_id === userId ||
               conversation.seller_id === userId)
           ) {
-            setHasNewMessage(true);
+            setUnreadConversationIds((ids) =>
+              ids.includes(message.conversation_id)
+                ? ids
+                : [...ids, message.conversation_id],
+            );
           }
         },
       )
@@ -136,6 +168,19 @@ export function MessageNotificationIndicator() {
       void supabase.removeChannel(channel);
     };
   }, [supabase, userId]);
+
+  const hasNewMessage =
+    !!userId && unreadConversationIds.some((id) => pathname !== `/mensagens/${id}`);
+
+  return (
+    <MessageNotificationContext.Provider value={hasNewMessage}>
+      {children}
+    </MessageNotificationContext.Provider>
+  );
+}
+
+export function MessageNotificationIndicator() {
+  const hasNewMessage = useContext(MessageNotificationContext);
 
   if (!hasNewMessage) return null;
 
