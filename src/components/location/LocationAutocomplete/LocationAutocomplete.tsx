@@ -184,6 +184,13 @@ export function LocationAutocomplete({
                 type="button"
                 disabled={disabled}
                 className="w-full rounded-lg px-4 py-3 text-left text-sm text-zinc-300 transition hover:bg-zinc-800 hover:text-white focus:bg-zinc-800 focus:text-white focus:outline-none"
+                onPointerDown={(event) => {
+                  if (event.isPrimary && event.button === 0) {
+                    // Mantém o foco e o teclado no input até o clique concluir a seleção.
+                    // Evita que o blur remova a lista durante um toque no Safari.
+                    event.preventDefault();
+                  }
+                }}
                 onClick={() => handleSelection(city)}
               >
                 {formatCity(city)}
