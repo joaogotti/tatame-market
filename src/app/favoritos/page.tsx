@@ -10,6 +10,7 @@ import {
 } from "@/lib/productImages";
 import {
   normalizeProductCategory,
+  normalizeProductCreatedAt,
   normalizeLocationIbgeCode,
   type CatalogProduct,
 } from "@/lib/products";
@@ -25,6 +26,7 @@ type DatabaseFavoriteProduct = {
   location_city: string;
   location_state: string;
   location_ibge_code?: string | number | null;
+  created_at?: string | null;
 };
 
 type DatabaseProductImage = ProductImageRecord & {
@@ -58,7 +60,7 @@ export default async function FavoritesPage() {
     const { data, error } = await supabase
       .from("products")
       .select(
-        "id,title,category,price,condition,size,location_city,location_state,location_ibge_code",
+        "id,title,category,price,condition,size,location_city,location_state,location_ibge_code,created_at",
       )
       .in("id", productIds)
       .eq("status", "active");
@@ -123,6 +125,7 @@ export default async function FavoritesPage() {
       return {
         key: `favorite:${product.id}`,
         source: "supabase",
+        createdAt: normalizeProductCreatedAt(product.created_at),
         href: `/produto/${encodeURIComponent(String(product.id))}`,
         title: product.title,
         price,

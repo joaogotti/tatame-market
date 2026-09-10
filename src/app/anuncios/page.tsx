@@ -1,11 +1,15 @@
 import { ListingFilters } from "@/components/products/ListingFilters/ListingFilters";
 import { ProductGrid } from "@/components/products/ProductGrid/ProductGrid";
 import { loadCatalogProducts } from "@/lib/catalog.server";
-import { parseCatalogParams } from "@/lib/catalogParams";
+import { parseCatalogParams, parseCatalogSort } from "@/lib/catalogParams";
+import { sortCatalogProducts } from "@/lib/productSort";
+import { ListingSort } from "@/components/products/ListingSort/ListingSort";
 import { filterCatalogProducts, getAvailableLocations, getAvailableSizes } from "@/lib/productSearch";
 
 export default async function ListingsPage({ searchParams }: PageProps<"/anuncios">) {
-  const filters = parseCatalogParams(await searchParams);
+  const params = await searchParams;
+  const filters = parseCatalogParams(params);
+  const sort = parseCatalogSort(params);
   const products = await loadCatalogProducts();
   const matchingProducts = filterCatalogProducts(products, { ...filters, size: null });
   const availableSizes = getAvailableSizes(matchingProducts);
@@ -13,6 +17,7 @@ export default async function ListingsPage({ searchParams }: PageProps<"/anuncio
     filterCatalogProducts(products, { ...filters, locationIbgeCode: null }),
   );
   const filteredProducts = filterCatalogProducts(matchingProducts, filters);
+  const sortedProducts = sortCatalogProducts(filteredProducts, sort);
 
   return (
     <div className="w-full px-6 py-10">
@@ -22,9 +27,10 @@ export default async function ListingsPage({ searchParams }: PageProps<"/anuncio
           Encontre equipamentos de Jiu-Jitsu anunciados pela comunidade.
         </p>
       </header>
-      <ListingFilters key={JSON.stringify(filters)} {...filters} availableSizes={availableSizes} availableLocations={availableLocations} />
+      <ListingFilters key={JSON.stringify(filters)} {...filters} sort={sort} availableSizes={availableSizes} availableLocations={availableLocations} />
       <section className="mt-8" aria-label="Resultados da busca">
-        <ProductGrid products={filteredProducts} />
+        <ListingSort sort={sort} />
+        <ProductGrid products={sortedProducts} />
       </section>
     </div>
   );

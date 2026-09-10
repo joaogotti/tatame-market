@@ -1,5 +1,6 @@
 import { normalizeLocationIbgeCode, normalizeProductCategory } from "@/lib/products";
 import type { CatalogFilters } from "@/lib/productSearch";
+import type { CatalogSort } from "@/lib/productSort";
 
 type CatalogSearchParams = Record<string, string | string[] | undefined>;
 
@@ -7,6 +8,11 @@ type CatalogSearchParams = Record<string, string | string[] | undefined>;
 function firstValue(value: string | string[] | undefined): string {
   const first = Array.isArray(value) ? value[0] : value;
   return typeof first === "string" ? first : "";
+}
+
+export function parseCatalogSort(params: CatalogSearchParams): CatalogSort {
+  const sort = firstValue(params.ordenar).trim();
+  return sort === "menor-preco" || sort === "maior-preco" ? sort : "recentes";
 }
 
 export function parseCatalogParams(params: CatalogSearchParams): CatalogFilters {

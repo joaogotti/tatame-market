@@ -4,12 +4,13 @@ import { useRouter } from "next/navigation";
 import { useId, useRef, useState, type FormEvent } from "react";
 import { SlidersHorizontal } from "lucide-react";
 import type { CatalogFilters } from "@/lib/productSearch";
+import type { CatalogSort } from "@/lib/productSort";
 import type { City } from "@/services/ibge/cities";
 import { ListingFilterPanel } from "@/components/products/ListingFilterPanel/ListingFilterPanel";
 
-type ListingFiltersProps = CatalogFilters & { availableSizes: string[]; availableLocations: City[] };
+type ListingFiltersProps = CatalogFilters & { availableSizes: string[]; availableLocations: City[]; sort: CatalogSort };
 
-export function ListingFilters({ query, category, condition = null, size = null, locationIbgeCode = null, availableSizes, availableLocations }: ListingFiltersProps) {
+export function ListingFilters({ query, category, condition = null, size = null, locationIbgeCode = null, availableSizes, availableLocations, sort }: ListingFiltersProps) {
   const router = useRouter();
   const panelId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -32,6 +33,7 @@ export function ListingFilters({ query, category, condition = null, size = null,
       }
     }
 
+    if (sort !== "recentes") params.set("ordenar", sort);
     const search = params.toString();
     closePanel();
     router.push(search ? `/anuncios?${search}` : "/anuncios");

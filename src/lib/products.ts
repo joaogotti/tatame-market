@@ -11,6 +11,7 @@ type CatalogProductBase = Pick<
   key: string;
   href: string;
   image: string | null;
+  createdAt: string | null;
 };
 
 export type CatalogProduct = CatalogProductBase &
@@ -38,6 +39,12 @@ export function normalizeLocationIbgeCode(value: string | number | null | undefi
 }
 
 export const productStatuses = ["active", "paused", "sold"] as const;
+
+export function normalizeProductCreatedAt(value: string | null | undefined): string | null {
+  if (typeof value !== "string" || !value.trim()) return null;
+  const timestamp = Date.parse(value);
+  return Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : null;
+}
 
 export type ProductStatus = (typeof productStatuses)[number];
 

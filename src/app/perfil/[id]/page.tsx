@@ -15,6 +15,7 @@ import {
 } from "@/lib/productImages";
 import {
   normalizeProductCategory,
+  normalizeProductCreatedAt,
   normalizeLocationIbgeCode,
   type CatalogProduct,
 } from "@/lib/products";
@@ -44,7 +45,7 @@ type DatabaseSellerProduct = {
   location_city: string;
   location_state: string;
   location_ibge_code?: string | number | null;
-  created_at: string;
+  created_at?: string | null;
 };
 
 type DatabaseProductImage = ProductImageRecord & {
@@ -229,6 +230,7 @@ export default async function PublicProfilePage({
     return {
       key: `seller:${product.id}`,
       source: "supabase",
+      createdAt: normalizeProductCreatedAt(product.created_at),
       href: `/produto/${encodeURIComponent(String(product.id))}`,
       title: product.title,
       price,
