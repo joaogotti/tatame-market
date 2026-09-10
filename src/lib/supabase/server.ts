@@ -53,8 +53,8 @@ export async function createClient() {
              * não permite alterar cookies diretamente.
              *
              * Isso é esperado.
-             * A atualização da sessão será tratada
-             * posteriormente pela camada de proxy/middleware.
+             * A renovação dos cookies antes da renderização
+             * é tratada em src/proxy.ts.
              */
           }
         },
