@@ -5,6 +5,7 @@ import { notFound, redirect } from "next/navigation";
 
 import { MessageForm } from "@/components/messages/MessageForm/MessageForm";
 import { MessageRealtimeListener } from "@/components/messages/MessageRealtimeListener/MessageRealtimeListener";
+import { MessageReadReceipt } from "@/components/messages/MessageReadReceipt/MessageReadReceipt";
 import {
   getProductImagePublicUrl,
   sortProductImages,
@@ -103,7 +104,8 @@ export default async function ConversationPage({
       .from("messages")
       .select("id,sender_id,content,created_at")
       .eq("conversation_id", conversation.id)
-      .order("created_at", { ascending: true }),
+      .order("created_at", { ascending: true })
+      .order("id", { ascending: true }),
     supabase
       .from("product_images")
       .select("storage_path,sort_order,is_primary")
@@ -157,6 +159,11 @@ export default async function ConversationPage({
 
   return (
     <div className="w-full px-6 py-10">
+      <MessageReadReceipt
+        userId={user.id}
+        conversationId={conversation.id}
+        lastMessageId={messages.at(-1)?.id ?? null}
+      />
       <MessageRealtimeListener
         conversationId={conversation.id}
         visibleMessageIds={messages.map((message) => message.id)}

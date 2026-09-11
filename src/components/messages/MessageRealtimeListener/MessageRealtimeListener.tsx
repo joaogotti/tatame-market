@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { createClient } from "@/lib/supabase/client";
+import { useMessageNotifications } from "@/components/messages/MessageNotificationIndicator/MessageNotificationIndicator";
 
 type RealtimeMessage = {
   id: string;
@@ -18,6 +19,7 @@ export function MessageRealtimeListener({
   visibleMessageIds: string[];
 }) {
   const router = useRouter();
+  const { userId } = useMessageNotifications();
   const [supabase] = useState(createClient);
   const visibleMessageIdsRef = useRef(new Set(visibleMessageIds));
 
@@ -26,6 +28,7 @@ export function MessageRealtimeListener({
   }, [conversationId, visibleMessageIds]);
 
   useEffect(() => {
+    if (!userId) return;
     let isActive = true;
     let channel: ReturnType<typeof supabase.channel> | null = null;
 
@@ -46,7 +49,7 @@ export function MessageRealtimeListener({
         return;
       }
 
-      if (!user) return;
+      if (!user || user.id !== userId) return;
 
       channel = supabase
         .channel(`conversation-messages-${conversationId}`)
@@ -64,6 +67,7 @@ export function MessageRealtimeListener({
             // O envio local já atualiza a página pelo MessageForm. Ignorá-lo
             // aqui evita um segundo refresh para o mesmo INSERT.
             if (
+              !isActive ||
               !message.id ||
               message.sender_id === user.id ||
               visibleMessageIdsRef.current.has(message.id)
@@ -76,6 +80,8 @@ export function MessageRealtimeListener({
           },
         )
         .subscribe((status, error) => {
+          if (!isActive) return;
+          if (status === "SUBSCRIBED") router.refresh();
           if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
             console.error("Falha na subscription da conversa.", {
               conversationId,
@@ -87,15 +93,22 @@ export function MessageRealtimeListener({
     }
 
     void subscribe();
+    const refreshVisible = () => {
+      if (isActive && document.visibilityState === "visible") router.refresh();
+    };
+    document.addEventListener("visibilitychange", refreshVisible);
+    window.addEventListener("online", refreshVisible);
 
     return () => {
       isActive = false;
+      document.removeEventListener("visibilitychange", refreshVisible);
+      window.removeEventListener("online", refreshVisible);
 
       if (channel) {
         void supabase.removeChannel(channel);
       }
     };
-  }, [conversationId, router, supabase]);
+  }, [conversationId, router, supabase, userId]);
 
   return null;
 }
