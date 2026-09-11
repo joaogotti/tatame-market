@@ -20,7 +20,7 @@ import {
   type CatalogProduct,
 } from "@/lib/products";
 import {
-  calculateReviewSummary,
+  getReviewSummary,
   type EditableReview,
   type PublicReview,
 } from "@/lib/reviews";
@@ -96,7 +96,7 @@ export default async function PublicProfilePage({
   if (!profileData) notFound();
 
   const profile = profileData as DatabasePublicProfile;
-  const [productsResult, reviewsResult, authResult] = await Promise.all([
+  const [productsResult, reviewsResult, authResult, reviewSummary] = await Promise.all([
     supabase
       .from("products")
       .select(
@@ -113,6 +113,7 @@ export default async function PublicProfilePage({
       .eq("seller_id", id)
       .order("created_at", { ascending: false }),
     supabase.auth.getUser(),
+    getReviewSummary(supabase, id),
   ]);
 
   if (productsResult.error) {
@@ -267,7 +268,6 @@ export default async function PublicProfilePage({
         : null,
     };
   });
-  const reviewSummary = calculateReviewSummary(reviews);
   const currentUserReviewData = currentUser
     ? databaseReviews.find((review) => review.reviewer_id === currentUser.id)
     : null;

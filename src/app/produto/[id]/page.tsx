@@ -12,7 +12,7 @@ import {
   formatProductPrice,
   getMockProductIdFromRoute,
 } from "@/lib/products";
-import { calculateReviewSummary } from "@/lib/reviews";
+import { getReviewSummary } from "@/lib/reviews";
 import {
   toProductGalleryImages,
   type ProductGalleryImage,
@@ -162,7 +162,7 @@ async function getProduct(id: string): Promise<ProductDetails | null> {
   }
 
   if (data) {
-    const [imagesResult, sellerResult, sellerReviewsResult, authResult] =
+    const [imagesResult, sellerResult, reviewSummary, authResult] =
       await Promise.all([
         supabase
           .from("product_images")
@@ -174,10 +174,7 @@ async function getProduct(id: string): Promise<ProductDetails | null> {
           .select("name,avatar_url,location_city,location_state")
           .eq("id", data.user_id)
           .maybeSingle(),
-        supabase
-          .from("reviews")
-          .select("rating")
-          .eq("seller_id", data.user_id),
+        getReviewSummary(supabase, data.user_id),
         supabase.auth.getUser(),
       ]);
 
@@ -198,16 +195,6 @@ async function getProduct(id: string): Promise<ProductDetails | null> {
         message: sellerResult.error.message,
       });
       throw new Error("Não foi possível carregar o vendedor do produto.");
-    }
-
-    if (sellerReviewsResult.error) {
-      console.error("Falha ao consultar reputação do vendedor.", {
-        id,
-        sellerId: data.user_id,
-        code: sellerReviewsResult.error.code,
-        message: sellerReviewsResult.error.message,
-      });
-      throw new Error("Não foi possível carregar a reputação do vendedor.");
     }
 
     const images = toProductGalleryImages(
@@ -241,7 +228,7 @@ async function getProduct(id: string): Promise<ProductDetails | null> {
             avatarUrl: sellerProfile.avatar_url,
             locationCity: sellerProfile.location_city,
             locationState: sellerProfile.location_state,
-            reviewSummary: calculateReviewSummary(sellerReviewsResult.data),
+            reviewSummary,
           }
         : null;
 
