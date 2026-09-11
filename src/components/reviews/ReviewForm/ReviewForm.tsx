@@ -114,7 +114,6 @@ export function ReviewForm({
           .update({
             rating,
             comment: normalizedComment || null,
-            updated_at: new Date().toISOString(),
           })
           .eq("id", currentReview.id)
           .eq("reviewer_id", user.id)
