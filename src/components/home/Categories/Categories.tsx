@@ -1,22 +1,11 @@
 import Image from "next/image";
-import {
-  productCategories,
-  type ProductCategory,
-} from "@/constants/mockProducts";
+import { categories } from "@/constants/categories";
 import styles from "./Categories.module.css";
 import type { CatalogFilters } from "@/lib/productSearch";
 
 type CategoriesProps = {
   selectedCategory: CatalogFilters["category"];
   onSelectCategory: (category: CatalogFilters["category"]) => void;
-};
-
-const categoryImages: Record<ProductCategory, { src: string; alt: string }> = {
-  Kimonos: { src: "/categories/kimonos.png", alt: "Kimono branco de Jiu-Jitsu" },
-  Faixas: { src: "/categories/faixas.png", alt: "Faixas de Jiu-Jitsu de diferentes graduações" },
-  Rashguards: { src: "/categories/rashguards.png", alt: "Rashguard preta de manga longa" },
-  Shorts: { src: "/categories/shorts.png", alt: "Shorts pretos para treino" },
-  Acessórios: { src: "/categories/acessorios.png", alt: "Mochila para equipamentos de Jiu-Jitsu" },
 };
 
 const imageSizes = "(max-width: 599px) 45vw, (max-width: 767px) 30vw, (max-width: 1199px) 25vw, 200px";
@@ -44,25 +33,25 @@ export function Categories({
       </div>
 
       <div className={styles.grid}>
-        {productCategories.map((category) => (
+        {categories.map((category) => (
           <button
-            key={category}
+            key={category.name}
             type="button"
-            aria-label={category}
-            aria-pressed={selectedCategory === category}
-            onClick={() => onSelectCategory(category)}
+            aria-label={category.name}
+            aria-pressed={selectedCategory === category.name}
+            onClick={() => onSelectCategory(category.name)}
             className={styles.card}
           >
             <span className={styles.imageArea}>
               <Image
-                src={categoryImages[category].src}
-                alt={categoryImages[category].alt}
+                src={category.image}
+                alt={category.alt}
                 fill
                 sizes={imageSizes}
                 className={styles.image}
               />
             </span>
-            <span className={styles.label}>{category}</span>
+            <span className={styles.label}>{category.name}</span>
           </button>
         ))}
         <button

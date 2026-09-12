@@ -11,15 +11,9 @@
  * utilizadas posteriormente para filtros e pesquisas.
  */
 
-export const productCategories = [
-  "Kimonos",
-  "Faixas",
-  "Rashguards",
-  "Shorts",
-  "Acessórios",
-] as const;
+import type { ProductCategory } from "@/constants/categories";
 
-export type ProductCategory = (typeof productCategories)[number];
+export { productCategories, type ProductCategory } from "@/constants/categories";
 
 /**
  * Contrato temporário de produto compartilhado pela listagem e pelos detalhes.
