@@ -1,10 +1,11 @@
 import { PackageOpen } from "lucide-react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { PublicProfileHeader } from "@/components/profile/PublicProfileHeader/PublicProfileHeader";
 import { ReviewForm } from "@/components/reviews/ReviewForm/ReviewForm";
 import { ReviewList } from "@/components/reviews/ReviewList/ReviewList";
+import { ReviewPagination } from "@/components/reviews/ReviewPagination/ReviewPagination";
 import { ReviewSummary } from "@/components/reviews/ReviewSummary/ReviewSummary";
 import { ProductCard } from "@/components/products/ProductCard/ProductCard";
 import { getFavoriteProductIds } from "@/lib/favorites";
@@ -25,6 +26,8 @@ import {
   type PublicReview,
 } from "@/lib/reviews";
 import { createClient } from "@/lib/supabase/server";
+
+const REVIEWS_PER_PAGE = 5;
 
 type DatabasePublicProfile = {
   name: string;
@@ -69,10 +72,24 @@ type DatabaseReviewAuthor = {
 
 export default async function PublicProfilePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ reviewsPage?: string | string[] }>;
 }) {
   const { id } = await params;
+  const { reviewsPage } = await searchParams;
+  const profileUrl = `/perfil/${encodeURIComponent(id)}`;
+  const page = reviewsPage === undefined ? 1 : Number(reviewsPage);
+
+  if (
+    (reviewsPage !== undefined &&
+      (typeof reviewsPage !== "string" || !/^[0-9]+$/.test(reviewsPage))) ||
+    !Number.isSafeInteger(page) || page < 1
+  ) {
+    redirect(`${profileUrl}?reviewsPage=1#avaliacoes`);
+  }
+
   const supabase = await createClient();
   const { data: profileData, error: profileError } = await supabase
     .from("profiles")
@@ -96,7 +113,7 @@ export default async function PublicProfilePage({
   if (!profileData) notFound();
 
   const profile = profileData as DatabasePublicProfile;
-  const [productsResult, reviewsResult, authResult, reviewSummary] = await Promise.all([
+  const [productsResult, authResult, reviewSummary] = await Promise.all([
     supabase
       .from("products")
       .select(
@@ -104,13 +121,6 @@ export default async function PublicProfilePage({
       )
       .eq("user_id", id)
       .eq("status", "active")
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("reviews")
-      .select(
-        "id,reviewer_id,rating,comment,created_at,updated_at",
-      )
-      .eq("seller_id", id)
       .order("created_at", { ascending: false }),
     supabase.auth.getUser(),
     getReviewSummary(supabase, id),
@@ -123,15 +133,6 @@ export default async function PublicProfilePage({
       message: productsResult.error.message,
     });
     throw new Error("Não foi possível carregar os anúncios deste vendedor.");
-  }
-
-  if (reviewsResult.error) {
-    console.error("Falha ao carregar avaliações do perfil público.", {
-      profileId: id,
-      code: reviewsResult.error.code,
-      message: reviewsResult.error.message,
-    });
-    throw new Error("Não foi possível carregar as avaliações deste vendedor.");
   }
 
   if (
@@ -148,6 +149,51 @@ export default async function PublicProfilePage({
   }
 
   const currentUser = authResult.error ? null : authResult.data.user;
+  const totalPages = Math.max(1, Math.ceil(reviewSummary.count / REVIEWS_PER_PAGE));
+
+  if (page > totalPages) {
+    redirect(`${profileUrl}?reviewsPage=${totalPages}#avaliacoes`);
+  }
+
+  const start = (page - 1) * REVIEWS_PER_PAGE;
+  const end = start + REVIEWS_PER_PAGE - 1;
+  const [reviewsResult, currentUserReviewResult] = await Promise.all([
+    supabase
+      .from("reviews")
+      .select("id,reviewer_id,rating,comment,created_at,updated_at")
+      .eq("seller_id", id)
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .range(start, end),
+    currentUser
+      ? supabase
+          .from("reviews")
+          .select("id,rating,comment")
+          .eq("reviewer_id", currentUser.id)
+          .eq("seller_id", id)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+  ]);
+
+  if (reviewsResult.error) {
+    console.error("Falha ao carregar avaliações do perfil público.", {
+      profileId: id,
+      code: reviewsResult.error.code,
+      message: reviewsResult.error.message,
+    });
+    throw new Error("Não foi possível carregar as avaliações deste vendedor.");
+  }
+
+  if (currentUserReviewResult.error) {
+    console.error("Falha ao carregar avaliação do usuário.", {
+      profileId: id,
+      reviewerId: currentUser?.id,
+      code: currentUserReviewResult.error.code,
+      message: currentUserReviewResult.error.message,
+    });
+    throw new Error("Não foi possível carregar sua avaliação deste vendedor.");
+  }
+
   const databaseProducts = productsResult.data as DatabaseSellerProduct[];
   const databaseReviews = reviewsResult.data as DatabaseReview[];
   const imagesByProduct = new Map<string, DatabaseProductImage[]>();
@@ -268,9 +314,7 @@ export default async function PublicProfilePage({
         : null,
     };
   });
-  const currentUserReviewData = currentUser
-    ? databaseReviews.find((review) => review.reviewer_id === currentUser.id)
-    : null;
+  const currentUserReviewData = currentUserReviewResult.data;
   const currentUserReview: EditableReview | null = currentUserReviewData
     ? {
         id: currentUserReviewData.id,
@@ -328,7 +372,7 @@ export default async function PublicProfilePage({
         )}
       </section>
 
-      <section className="mt-12 border-t border-white/10 pt-10">
+      <section id="avaliacoes" className="mt-12 border-t border-white/10 pt-10">
         <div>
           <span className="text-sm font-medium text-[#58C447]">
             Reputação
@@ -367,6 +411,11 @@ export default async function PublicProfilePage({
 
         <div className="mt-6">
           <ReviewList reviews={reviews} />
+          <ReviewPagination
+            sellerId={id}
+            page={page}
+            totalPages={totalPages}
+          />
         </div>
       </section>
     </div>
