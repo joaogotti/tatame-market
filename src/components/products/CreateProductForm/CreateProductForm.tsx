@@ -4,10 +4,8 @@ import { ImagePlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useRef, useState } from "react";
 
-import {
-  productCategories,
-  type Product,
-} from "@/constants/mockProducts";
+import { productCategories } from "@/constants/categories";
+import type { ProductCondition } from "@/lib/products";
 import { LocationAutocomplete } from "@/components/location/LocationAutocomplete/LocationAutocomplete";
 import {
   PRODUCT_IMAGE_MIME_TYPES,
@@ -16,7 +14,7 @@ import {
 } from "@/lib/productImages";
 import { createClient } from "@/lib/supabase/client";
 
-const productConditions = ["Novo", "Usado"] satisfies Product["condition"][];
+const productConditions = ["Novo", "Usado"] satisfies ProductCondition[];
 
 const fieldClassName =
   "mt-2 w-full rounded-lg border border-zinc-700 bg-[#181B19] px-4 py-3 text-white outline-none transition placeholder:text-zinc-600 focus:border-[#58C447] focus:ring-1 focus:ring-[#58C447]";

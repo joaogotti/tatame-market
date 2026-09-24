@@ -7,11 +7,7 @@ import {
   SellerCard,
   type PublicSeller,
 } from "@/components/profile/SellerCard/SellerCard";
-import { mockProducts } from "@/constants/mockProducts";
-import {
-  formatProductPrice,
-  getMockProductIdFromRoute,
-} from "@/lib/products";
+import { formatProductPrice } from "@/lib/products";
 import { getReviewSummary } from "@/lib/reviews";
 import {
   toProductGalleryImages,
@@ -33,23 +29,14 @@ type ProductDetailsBase = {
   description: string;
 };
 
-type ProductDetails = ProductDetailsBase &
-  (
-    | {
-        source: "supabase";
-        favoriteProductId: string;
-        isFavorite: boolean;
-        sellerId: string;
-        seller: PublicSeller | null;
-        status: string;
-        currentUserId: string | null;
-      }
-    | {
-        source: "mock";
-        favoriteProductId: null;
-        isFavorite: false;
-      }
-  );
+type ProductDetails = ProductDetailsBase & {
+  favoriteProductId: string;
+  isFavorite: boolean;
+  sellerId: string;
+  seller: PublicSeller | null;
+  status: string;
+  currentUserId: string | null;
+};
 
 type DatabaseProduct = {
   id: string | number;
@@ -87,7 +74,6 @@ function normalizeDatabaseProduct(
 
   return {
     id: String(product.id),
-    source: "supabase",
     title: product.title,
     price,
     location: `${product.location_city}, ${product.location_state}`,
@@ -105,44 +91,7 @@ function normalizeDatabaseProduct(
   };
 }
 
-function normalizeMockProduct(
-  product: (typeof mockProducts)[number],
-): ProductDetails {
-  return {
-    id: String(product.id),
-    source: "mock",
-    title: product.title,
-    price: product.price,
-    location: product.location,
-    images: [
-      {
-        url: product.image,
-        sortOrder: 0,
-        isPrimary: true,
-      },
-    ],
-    category: product.category,
-    size: product.size,
-    condition: product.condition,
-    description: product.description,
-    favoriteProductId: null,
-    isFavorite: false,
-  };
-}
-
 async function getProduct(id: string): Promise<ProductDetails | null> {
-  const mockId = getMockProductIdFromRoute(id);
-
-  // O prefixo explicita a origem e evita que um ID mock abra um produto real
-  // com o mesmo identificador no Supabase.
-  if (mockId) {
-    const mockProduct = mockProducts.find(
-      (item) => String(item.id) === mockId,
-    );
-
-    return mockProduct ? normalizeMockProduct(mockProduct) : null;
-  }
-
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("products")
@@ -248,34 +197,16 @@ async function getProduct(id: string): Promise<ProductDetails | null> {
     );
   }
 
-  // Enquanto a Home usar dados locais, IDs ausentes no banco continuam
-  // resolvendo para os anúncios existentes em mockProducts.
-  const mockProduct = mockProducts.find((item) => String(item.id) === id);
-
-  return mockProduct ? normalizeMockProduct(mockProduct) : null;
+  return null;
 }
 
-/**
- * Gera antecipadamente as páginas dos anúncios disponíveis nos mocks enquanto
- * os demais IDs continuam sendo resolvidos dinamicamente pelo Supabase.
- */
-export function generateStaticParams() {
-  return mockProducts.map((product) => ({
-    id: String(product.id),
-  }));
-}
-
-/**
- * Página individual de um anúncio. A busca permanece neste Server Component,
- * sem adicionar JavaScript ao cliente para uma tela que não possui interação.
- */
 export default async function ProductPage({
   params,
 }: PageProps<"/produto/[id]">) {
   const { id } = await params;
   const product = await getProduct(id);
 
-  // Apenas a ausência nas duas fontes segue o fluxo 404 nativo do App Router.
+  // Produtos ausentes no Supabase seguem o fluxo de notFound().
   if (!product) {
     notFound();
   }
@@ -298,13 +229,11 @@ export default async function ProductPage({
             <strong className="text-3xl text-[#58C447]">
               {formatProductPrice(product.price)}
             </strong>
-            {product.source === "supabase" && (
-              <FavoriteButton
-                key={`${product.favoriteProductId}:${product.isFavorite}`}
-                productId={product.favoriteProductId}
-                initialIsFavorite={product.isFavorite}
-              />
-            )}
+            <FavoriteButton
+              key={`${product.favoriteProductId}:${product.isFavorite}`}
+              productId={product.favoriteProductId}
+              initialIsFavorite={product.isFavorite}
+            />
           </div>
 
           <div className="mt-8 flex flex-wrap items-center gap-2 text-zinc-300">
@@ -315,15 +244,14 @@ export default async function ProductPage({
 
           <p className="mt-3 text-zinc-400">{product.location}</p>
 
-          {product.source === "supabase" &&
-            product.status === "active" &&
+          {product.status === "active" &&
             product.currentUserId !== product.sellerId && (
               <StartConversationButton productId={product.id} />
             )}
         </div>
       </div>
 
-      {product.source === "supabase" && product.seller && (
+      {product.seller && (
         <SellerCard seller={product.seller} />
       )}
 

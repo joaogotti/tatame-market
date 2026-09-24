@@ -124,7 +124,6 @@ export default async function FavoritesPage() {
 
       return {
         key: `favorite:${product.id}`,
-        source: "supabase",
         createdAt: normalizeProductCreatedAt(product.created_at),
         href: `/produto/${encodeURIComponent(String(product.id))}`,
         title: product.title,

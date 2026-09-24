@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { X } from "lucide-react";
-import { productCategories } from "@/constants/mockProducts";
+import { productCategories } from "@/constants/categories";
 import { normalizeSearchText, type CatalogFilters } from "@/lib/productSearch";
 import type { City } from "@/services/ibge/cities";
 import { ListingLocationFilter } from "@/components/products/ListingLocationFilter/ListingLocationFilter";

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ListingFilters } from "@/components/products/ListingFilters/ListingFilters";
 import { ProductGrid } from "@/components/products/ProductGrid/ProductGrid";
 import { loadCatalogProducts } from "@/lib/catalog.server";
@@ -30,7 +31,15 @@ export default async function ListingsPage({ searchParams }: PageProps<"/anuncio
       <ListingFilters key={JSON.stringify(filters)} {...filters} sort={sort} availableSizes={availableSizes} availableLocations={availableLocations} />
       <section className="mt-8" aria-label="Resultados da busca">
         <ListingSort sort={sort} />
-        <ProductGrid products={sortedProducts} />
+        <ProductGrid
+          products={sortedProducts}
+          isCatalogEmpty={products.length === 0}
+          clearFiltersAction={
+            <Link href={sort === "recentes" ? "/anuncios" : `/anuncios?ordenar=${sort}`} className="underline underline-offset-4">
+              Limpar busca e filtros
+            </Link>
+          }
+        />
       </section>
     </div>
   );

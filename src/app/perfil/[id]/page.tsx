@@ -276,7 +276,6 @@ export default async function PublicProfilePage({
 
     return {
       key: `seller:${product.id}`,
-      source: "supabase",
       createdAt: normalizeProductCreatedAt(product.created_at),
       href: `/produto/${encodeURIComponent(String(product.id))}`,
       title: product.title,

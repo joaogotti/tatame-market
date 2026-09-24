@@ -18,6 +18,13 @@ export function HomeCatalog({ products }: { products: CatalogProduct[] }) {
     setAppliedCategory(draftCategory);
   }
 
+  function clearFilters() {
+    setDraftQuery("");
+    setDraftCategory(null);
+    setAppliedQuery("");
+    setAppliedCategory(null);
+  }
+
   function selectCategory(category: CatalogFilters["category"]) {
     setDraftCategory(category);
     setAppliedCategory(category);
@@ -38,7 +45,15 @@ export function HomeCatalog({ products }: { products: CatalogProduct[] }) {
         onSearch={applySearch}
       />
       <Categories selectedCategory={appliedCategory} onSelectCategory={selectCategory} />
-      <ProductCatalog products={filteredProducts} />
+      <ProductCatalog
+        products={filteredProducts}
+        isCatalogEmpty={products.length === 0}
+        clearFiltersAction={
+          <button type="button" onClick={clearFilters} className="cursor-pointer underline underline-offset-4">
+            Limpar busca e filtros
+          </button>
+        }
+      />
     </>
   );
 }

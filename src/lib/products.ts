@@ -1,32 +1,27 @@
-import {
-  productCategories,
-  type Product,
-  type ProductCategory,
-} from "@/constants/mockProducts";
+import { productCategories, type ProductCategory } from "@/constants/categories";
 
-type CatalogProductBase = Pick<
-  Product,
-  "title" | "price" | "location" | "locationCity" | "locationState" | "locationIbgeCode" | "category" | "size" | "condition"
-> & {
+export type ProductCondition = "Novo" | "Usado";
+
+type ProductSummary = {
+  title: string;
+  price: number;
+  location: string;
+  condition: ProductCondition;
+};
+
+export type CatalogProduct = ProductSummary & {
   key: string;
   href: string;
   image: string | null;
   createdAt: string | null;
+  locationCity: string;
+  locationState: string;
+  locationIbgeCode: number | null;
+  category: ProductCategory;
+  size: string;
+  favoriteProductId: string;
+  isFavorite: boolean;
 };
-
-export type CatalogProduct = CatalogProductBase &
-  (
-    | {
-        source: "supabase";
-        favoriteProductId: string;
-        isFavorite: boolean;
-      }
-    | {
-        source: "mock";
-        favoriteProductId: null;
-        isFavorite: false;
-      }
-  );
 
 /** Preserva códigos numéricos e representa registros legados sem código como null. */
 export function normalizeLocationIbgeCode(value: string | number | null | undefined): number | null {
@@ -67,10 +62,7 @@ export function canTransitionProductStatus(
   return nextStatus === "active";
 }
 
-export type UserProduct = Pick<
-  Product,
-  "title" | "price" | "location" | "condition"
-> & {
+export type UserProduct = ProductSummary & {
   id: string;
   image: string | null;
   status: ProductStatus;
@@ -101,16 +93,4 @@ export function formatProductPrice(price: number) {
     style: "currency",
     currency: "BRL",
   }).format(price);
-}
-
-const MOCK_PRODUCT_PREFIX = "mock-";
-
-export function getMockProductHref(id: string | number) {
-  return `/produto/${MOCK_PRODUCT_PREFIX}${encodeURIComponent(String(id))}`;
-}
-
-export function getMockProductIdFromRoute(id: string) {
-  if (!id.startsWith(MOCK_PRODUCT_PREFIX)) return null;
-
-  return id.slice(MOCK_PRODUCT_PREFIX.length) || null;
 }

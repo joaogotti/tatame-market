@@ -1,6 +1,6 @@
 import { BadgeCheck, Search, ShieldCheck, UsersRound } from "lucide-react";
 import Image from "next/image";
-import { productCategories } from "@/constants/mockProducts";
+import { productCategories } from "@/constants/categories";
 import type { CatalogFilters } from "@/lib/productSearch";
 import styles from "./Hero.module.css";
 

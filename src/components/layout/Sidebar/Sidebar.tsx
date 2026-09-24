@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { Shirt, Minus, ShoppingBag, Plus } from "lucide-react";
-import { productCategories } from "@/constants/mockProducts";
+import { productCategories } from "@/constants/categories";
 import { Navigation } from "@/components/layout/Navigation/Navigation";
 
 export function Sidebar() {

@@ -1,8 +1,6 @@
 import "server-only";
 
-import { mockProducts } from "@/constants/mockProducts";
 import {
-  getMockProductHref,
   normalizeProductCategory,
   normalizeProductCreatedAt,
   normalizeLocationIbgeCode,
@@ -47,7 +45,6 @@ function normalizeDatabaseProduct(
 
   return {
     key: `supabase:${product.id}`,
-    source: "supabase",
     createdAt: normalizeProductCreatedAt(product.created_at),
     href: `/produto/${encodeURIComponent(String(product.id))}`,
     title: product.title,
@@ -62,29 +59,6 @@ function normalizeDatabaseProduct(
     condition: product.condition,
     favoriteProductId: String(product.id),
     isFavorite,
-  };
-}
-
-function normalizeMockProduct(
-  product: (typeof mockProducts)[number],
-): CatalogProduct {
-  return {
-    key: `mock:${product.id}`,
-    source: "mock",
-    createdAt: null,
-    href: getMockProductHref(product.id),
-    title: product.title,
-    price: product.price,
-    location: product.location,
-    locationCity: product.locationCity,
-    locationState: product.locationState,
-    locationIbgeCode: product.locationIbgeCode,
-    image: product.image,
-    category: product.category,
-    size: product.size,
-    condition: product.condition,
-    favoriteProductId: null,
-    isFavorite: false,
   };
 }
 
@@ -174,12 +148,7 @@ async function getDatabaseProducts(): Promise<CatalogProduct[]> {
   });
 }
 
-/** Carrega o catálogo da sessão atual: produtos ativos reais, seguidos dos mocks. */
+/** Carrega os produtos ativos do Supabase para a sessão atual. */
 export async function loadCatalogProducts(): Promise<CatalogProduct[]> {
-  const databaseProducts = await getDatabaseProducts();
-
-  return [
-    ...databaseProducts,
-    ...mockProducts.map(normalizeMockProduct),
-  ];
+  return getDatabaseProducts();
 }

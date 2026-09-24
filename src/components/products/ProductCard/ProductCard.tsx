@@ -50,7 +50,7 @@ export function ProductCard({
               className={compact ? styles.image : "object-cover"}
             />
           ) : (
-            // Produtos reais permanecem sem imagem até a integração do Storage.
+            // Exibe uma alternativa quando o produto não possui imagem.
             <div className={compact ? styles.fallback : "absolute inset-0 flex flex-col items-center justify-center gap-2 text-zinc-600"}>
               <ImageOff aria-hidden="true" size={32} strokeWidth={1.5} />
               <span className="text-xs font-medium">Imagem indisponível</span>
@@ -93,14 +93,12 @@ export function ProductCard({
         </div>
       </Link>
 
-      {product.source === "supabase" && (
-        <FavoriteButton
-          key={`${product.favoriteProductId}:${product.isFavorite}`}
-          productId={product.favoriteProductId}
-          initialIsFavorite={product.isFavorite}
-          className={compact ? styles.favorite : "absolute right-3 top-3 z-10"}
-        />
-      )}
+      <FavoriteButton
+        key={`${product.favoriteProductId}:${product.isFavorite}`}
+        productId={product.favoriteProductId}
+        initialIsFavorite={product.isFavorite}
+        className={compact ? styles.favorite : "absolute right-3 top-3 z-10"}
+      />
     </article>
   );
 }
