@@ -1,40 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+﻿# Tatame Market
 
-## Getting Started
+Marketplace para praticantes de Jiu-Jitsu anunciarem equipamentos e encontrarem produtos de outros usuários. O projeto permite gerenciar anúncios, consultar perfis de vendedores e conversar sobre os produtos de interesse.
 
-First, run the development server:
+## Projeto online
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+[https://tatame-market.vercel.app](https://tatame-market.vercel.app)
+
+## Funcionalidades
+
+- Cadastro e autenticação com e-mail e senha.
+- Criação e gerenciamento de anúncios, com upload de imagens e status de disponibilidade.
+- Busca, filtros por categoria, condição, tamanho e localização, além de ordenação por data ou preço.
+- Lista de produtos favoritos.
+- Perfis de usuários e vendedores, com foto, biografia e anúncios publicados.
+- Avaliações e reputação de vendedores.
+- Conversas entre comprador e vendedor, com mensagens em tempo real.
+
+## Tecnologias
+
+| Tecnologia | Uso |
+| --- | --- |
+| Next.js / React | Interface e estrutura da aplicação |
+| TypeScript | Tipagem |
+| Tailwind CSS / CSS Modules | Estilização |
+| Supabase | Banco de dados, autenticação, Storage e Realtime |
+| API do IBGE | Consulta de municípios |
+| Lucide React | Ícones |
+| Vercel | Deploy |
+
+## Estrutura do projeto
+
+```text
+src/
+├── app/
+├── components/
+├── constants/
+├── lib/
+└── services/
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- `app`: páginas e rotas.
+- `components`: componentes reutilizáveis organizados por funcionalidade.
+- `constants`: dados compartilhados da aplicação.
+- `lib`: integrações e regras compartilhadas.
+- `services`: integrações externas, como a API do IBGE.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Executando localmente
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Use Node.js 24.x e npm.
 
-## Learn More
+1. Clone o repositório e instale as dependências:
 
-To learn more about Next.js, take a look at the following resources:
+   ```bash
+   git clone https://github.com/joaogotti/tatame-market.git
+   cd tatame-market
+   npm ci
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. Crie um arquivo `.env.local` na raiz e configure estas variáveis:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 
-## Deploy on Vercel
+3. Inicie o projeto:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   ```bash
+   npm run dev
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   Acesse [http://localhost:3000](http://localhost:3000).
 
-## Deploy
-
-Projeto preparado para deploy na Vercel.
+Algumas funcionalidades dependem de um projeto Supabase configurado.
